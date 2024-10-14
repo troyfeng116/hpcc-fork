@@ -11,6 +11,8 @@ TypeId RdmaDriver::GetTypeId (void)
 		.SetParent<Object> ()
 		.AddTraceSource ("QpComplete", "A qp completes.",
 				MakeTraceSourceAccessor (&RdmaDriver::m_traceQpComplete))
+		.AddTraceSource ("WindowSizeChange", "Window size change in RDMA HW.",
+				MakeTraceSourceAccessor (&RdmaDriver::m_traceWindowSizeChangeCallback))
 		;
 	return tid;
 }
@@ -49,7 +51,7 @@ void RdmaDriver::Init(void){
 	#endif
 	// RdmaHw do setup
 	m_rdma->SetNode(m_node);
-	m_rdma->Setup(MakeCallback(&RdmaDriver::QpComplete, this));
+	m_rdma->Setup(MakeCallback(&RdmaDriver::QpComplete, this), MakeCallback(&RdmaDriver::WindowSizeChangeCallback, this));
 }
 
 void RdmaDriver::SetNode(Ptr<Node> node){
@@ -66,6 +68,10 @@ void RdmaDriver::AddQueuePair(uint64_t size, uint16_t pg, Ipv4Address sip, Ipv4A
 
 void RdmaDriver::QpComplete(Ptr<RdmaQueuePair> q){
 	m_traceQpComplete(q);
+}
+
+void RdmaDriver::WindowSizeChangeCallback(uint32_t node_id, Ptr<RdmaQueuePair> qp, DataRate new_rate) {
+	m_traceWindowSizeChangeCallback(node_id, qp, new_rate);
 }
 
 } // namespace ns3

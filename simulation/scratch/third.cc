@@ -48,6 +48,7 @@ uint32_t packet_payload_size = 1000, l2_chunk_size = 0, l2_ack_interval = 0;
 double pause_time = 5, simulator_stop_time = 3.01;
 std::string data_rate, link_delay, topology_file, flow_file, trace_file, trace_output_file;
 std::string fct_output_file = "fct.txt";
+std::string wsize_output_file = "wsize.txt";
 std::string pfc_output_file = "pfc.txt";
 
 double alpha_resume_interval = 55, rp_timer, ewma_gain = 1 / 16;
@@ -173,6 +174,16 @@ void qp_finish(FILE* fout, Ptr<RdmaQueuePair> q){
 	Ptr<Node> dstNode = n.Get(did);
 	Ptr<RdmaDriver> rdma = dstNode->GetObject<RdmaDriver> ();
 	rdma->m_rdma->DeleteRxQp(q->sip.Get(), q->m_pg, q->sport);
+}
+
+void wsize_change(FILE* fout, uint32_t node_id, Ptr<RdmaQueuePair> q, DataRate new_rate){
+	uint32_t sid = ip_to_node_id(q->sip), did = ip_to_node_id(q->dip);
+	uint64_t base_rtt = pairRtt[sid][did], b = pairBw[sid][did];
+	uint32_t total_bytes = q->m_size + ((q->m_size-1) / packet_payload_size + 1) * (CustomHeader::GetStaticWholeHeaderSize() - IntHeader::GetStaticSize()); // translate to the minimum bytes required (with header but no INT)
+	uint64_t standalone_fct = base_rtt + total_bytes * 8000000000lu / b;
+	// timestamp, node_id, sip, dip, sport, dport, new_rate
+	fprintf(fout, "%lu %u %08x %08x %u %u %lu\n", Simulator::Now().GetTimeStep(), node_id, q->sip.Get(), q->dip.Get(), q->sport, q->dport, new_rate.GetBitRate());
+	fflush(fout);
 }
 
 void get_pfc(FILE* fout, Ptr<QbbNetDevice> dev, uint32_t type){
@@ -541,6 +552,9 @@ int main(int argc, char *argv[])
 			}else if (key.compare("FCT_OUTPUT_FILE") == 0){
 				conf >> fct_output_file;
 				std::cout << "FCT_OUTPUT_FILE\t\t" << fct_output_file << '\n';
+			}else if (key.compare("WSIZE_OUTPUT_FILE") == 0){
+				conf >> wsize_output_file;
+				std::cout << "WSIZE_OUTPUT_FILE\t\t" << wsize_output_file << '\n';
 			}else if (key.compare("HAS_WIN") == 0){
 				conf >> has_win;
 				std::cout << "HAS_WIN\t\t" << has_win << "\n";
@@ -851,6 +865,7 @@ int main(int argc, char *argv[])
 
 	#if ENABLE_QP
 	FILE *fct_output = fopen(fct_output_file.c_str(), "w");
+	FILE *wsize_output = fopen(wsize_output_file.c_str(), "w");
 	//
 	// install RDMA driver
 	//
@@ -890,6 +905,7 @@ int main(int argc, char *argv[])
 			node->AggregateObject (rdma);
 			rdma->Init();
 			rdma->TraceConnectWithoutContext("QpComplete", MakeBoundCallback (qp_finish, fct_output));
+			rdma->TraceConnectWithoutContext("WindowSizeChange", MakeBoundCallback(wsize_change, wsize_output));
 		}
 	}
 	#endif

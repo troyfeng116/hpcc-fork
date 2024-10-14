@@ -12,6 +12,7 @@ FLOW_FILE mix/{trace}.txt
 TRACE_FILE mix/trace.txt
 TRACE_OUTPUT_FILE mix/mix_{topo}_{trace}_{cc}{failure}.tr
 FCT_OUTPUT_FILE mix/fct_{topo}_{trace}_{cc}{failure}.txt
+WSIZE_OUTPUT_FILE mix/wsize_{topo}_{trace}_{cc}{failure}.txt
 PFC_OUTPUT_FILE mix/pfc_{topo}_{trace}_{cc}{failure}.txt
 
 SIMULATOR_STOP_TIME 4.00

@@ -184,7 +184,7 @@ RdmaHw::RdmaHw(){
 void RdmaHw::SetNode(Ptr<Node> node){
 	m_node = node;
 }
-void RdmaHw::Setup(QpCompleteCallback cb){
+void RdmaHw::Setup(QpCompleteCallback cb, TraceWindowSizeChangeCallback wSizeCb){
 	for (uint32_t i = 0; i < m_nic.size(); i++){
 		Ptr<QbbNetDevice> dev = m_nic[i].dev;
 		if (dev == NULL)
@@ -200,6 +200,7 @@ void RdmaHw::Setup(QpCompleteCallback cb){
 	}
 	// setup qp complete callback
 	m_qpCompleteCallback = cb;
+	m_traceWindowSizeChangeCallback = wSizeCb;
 }
 
 uint32_t RdmaHw::GetNicIdxOfQp(Ptr<RdmaQueuePair> qp){
@@ -608,6 +609,8 @@ void RdmaHw::ChangeRate(Ptr<RdmaQueuePair> qp, DataRate new_rate){
 	#endif
 
 	// change to new rate
+	// std::cout << Simulator::Now() << " node " << m_node->GetId() << " new_rate " << new_rate.GetBitRate() << "\n";
+	m_traceWindowSizeChangeCallback(m_node->GetId(), qp, new_rate);
 	qp->m_rate = new_rate;
 }
 
