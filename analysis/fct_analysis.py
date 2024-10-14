@@ -39,7 +39,7 @@ if __name__=="__main__":
 			#print cmd
 			output = subprocess.check_output(cmd, shell=True)
 		else:
-			cmd = "cat %s"%(file)+" | awk '{$6+$7<"+"%d"%time_limit+") {slow=$7/$8;print slow<1?1:slow, $5}}' | sort -n -k 2"
+			cmd = "cat %s"%(file)+" | awk '{if ($6+$7<"+"%d"%time_limit+") {slow=$7/$8;print slow<1?1:slow, $5}}' | sort -n -k 2"
 			#print cmd
 			output = subprocess.check_output(cmd, shell=True)
 
