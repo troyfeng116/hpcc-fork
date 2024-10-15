@@ -432,9 +432,8 @@ int RdmaHw::ReceiveAck(Ptr<Packet> p, CustomHeader &ch){
 		HandleAckDctcp(qp, p, ch);
 	}else if (m_cc_mode == 10){
 		HandleAckHpPint(qp, p, ch);
-	} else {
-		m_traceWindowSizeChangeCallback(m_node->GetId(), qp, qp->m_rate);
 	}
+	m_traceWindowSizeChangeCallback(m_node->GetId(), qp, qp->m_rate);
 	// ACK may advance the on-the-fly window, allowing more packets to send
 	dev->TriggerTransmit();
 	return 0;
@@ -612,7 +611,7 @@ void RdmaHw::ChangeRate(Ptr<RdmaQueuePair> qp, DataRate new_rate){
 
 	// change to new rate
 	// std::cout << Simulator::Now() << " node " << m_node->GetId() << " new_rate " << new_rate.GetBitRate() << "\n";
-	m_traceWindowSizeChangeCallback(m_node->GetId(), qp, new_rate);
+	// m_traceWindowSizeChangeCallback(m_node-GetId(), qp, new_rate);
 	qp->m_rate = new_rate;
 }
 
@@ -933,7 +932,7 @@ void RdmaHw::HandleAckTimely(Ptr<RdmaQueuePair> qp, Ptr<Packet> p, CustomHeader 
 	}else{ // do fast react
 		FastReactTimely(qp, p, ch);
 	}
-	m_traceWindowSizeChangeCallback(m_node->GetId(), qp, qp->m_rate);
+	// m_traceWindowSizeChangeCallback(m_node->GetId(), qp, qp->m_rate);
 }
 void RdmaHw::UpdateRateTimely(Ptr<RdmaQueuePair> qp, Ptr<Packet> p, CustomHeader &ch, bool us){
 	uint32_t next_seq = qp->snd_nxt;
