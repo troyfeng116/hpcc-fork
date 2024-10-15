@@ -432,6 +432,8 @@ int RdmaHw::ReceiveAck(Ptr<Packet> p, CustomHeader &ch){
 		HandleAckDctcp(qp, p, ch);
 	}else if (m_cc_mode == 10){
 		HandleAckHpPint(qp, p, ch);
+	} else {
+		m_traceWindowSizeChangeCallback(m_node->GetId(), qp, qp->m_rate);
 	}
 	// ACK may advance the on-the-fly window, allowing more packets to send
 	dev->TriggerTransmit();
@@ -931,6 +933,7 @@ void RdmaHw::HandleAckTimely(Ptr<RdmaQueuePair> qp, Ptr<Packet> p, CustomHeader 
 	}else{ // do fast react
 		FastReactTimely(qp, p, ch);
 	}
+	m_traceWindowSizeChangeCallback(m_node->GetId(), qp, qp->m_rate);
 }
 void RdmaHw::UpdateRateTimely(Ptr<RdmaQueuePair> qp, Ptr<Packet> p, CustomHeader &ch, bool us){
 	uint32_t next_seq = qp->snd_nxt;

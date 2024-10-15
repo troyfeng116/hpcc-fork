@@ -5,10 +5,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-def get_file_suffix(topo, flow, utgt, hpai):
+def get_file_suffix(topo, flow, cc_algo):
     # type: (str, str, int, int) -> str
-    return '{topo}_{flow}_hp{utgt}ai{hpai}'.format(
-        topo=topo, flow=flow, utgt=utgt, hpai=hpai
+    return '{topo}_{flow}_{cc_algo}'.format(
+        topo=topo, flow=flow, cc_algo=cc_algo
     )
 
 def process_wsize_trace_file(file_name, node_number):
@@ -42,15 +42,16 @@ def get_wsize_out_png_name(file_suffix, node_num):
     )
 
 # Plot window size over time
-def plot_wsize(node_num, times, wsizes, file_suffix):
-    # type: (int, List[int], List[int], str) -> None
+def plot_wsize(node_num, cc_algo, times, send_rates, file_suffix):
+    # type: (int, str, List[int], List[int], str) -> None
     times_ms = [t / 1e6 for t in times]
+    send_rates_b_s = [r / 1e9 for r in send_rates]
 
     plt.figure(figsize=(10, 6))
-    plt.plot(times_ms, wsizes, label='Window size (Bytes)', color='blue')
+    plt.plot(times_ms, send_rates_b_s, label='Send rate (Bytes/s)', color='blue')
     plt.xlabel('Time (ms)')
-    plt.ylabel('Window size (Bytes)')
-    plt.title('Window size Over Time for Node {}'.format(node_num))
+    plt.ylabel('Send rate (B/s)')
+    plt.title('Send rate Over Time for Node {} ({})'.format(node_num, cc_algo))
     plt.grid(True)
     # plt.legend()
     # plt.show()
@@ -66,24 +67,22 @@ if __name__ == '__main__':
     parser.add_argument('--flow', dest='flow', action='store', default='flow', help="the name of the flow file")
     parser.add_argument('--bw', dest="bw", action='store', default='100', help="the NIC bandwidth")
     parser.add_argument('--topo', dest='topo', action='store', default='fat', help="the name of the topology file")
-    parser.add_argument('--utgt', dest='utgt', action='store', type=int, default=95, help="eta of HPCC")
-    parser.add_argument('--mi', dest='mi', action='store', type=int, default=0, help="MI_THRESH")
-    parser.add_argument('--hpai', dest='hpai', action='store', type=int, default=0, help="AI for HPCC")
+    parser.add_argument('--cc_algo', dest='cc_algo', action='store', default='hp95ai50', help="CC algo with params")
     args = parser.parse_args()
 
     node_number = args.node
     topo=args.topo
     flow=args.flow
-    utgt = args.utgt
-    hpai=args.hpai
+    cc_algo = args.cc_algo
 
-    file_suffix = get_file_suffix(topo=topo, flow=flow, utgt=utgt, hpai=hpai)
+    file_suffix = get_file_suffix(topo=topo, flow=flow, cc_algo=cc_algo)
     trace_file = '../simulation/mix/wsize_{file_suffix}.txt'.format(file_suffix=file_suffix)
 
-    times, wsizes = process_wsize_trace_file(file_name=trace_file, node_number=node_number)
+    times, send_rates = process_wsize_trace_file(file_name=trace_file, node_number=node_number)
     plot_wsize(
         node_num=node_number,
+        cc_algo=cc_algo,
         times=times,
-        wsizes=wsizes,
+        send_rates=send_rates,
         file_suffix=file_suffix
     )

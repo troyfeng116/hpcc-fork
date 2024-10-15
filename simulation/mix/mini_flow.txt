@@ -1,6 +1,6 @@
 2
-0 6 3 79 10000000 0
-1 5 3 89 10000000 0
+0 6 3 79 500000 0
+1 5 3 89 500000 0
 
 First line: # of flows
 src0 dst0 3 dst_port0 size0 start_time0
