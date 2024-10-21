@@ -46,12 +46,16 @@ public:
 	typedef Callback<void, Ptr<RdmaQueuePair> > QpCompleteCallback;
 	QpCompleteCallback m_qpCompleteCallback;
 
-	// window size change callback: (node id, src, dst, w_size)
-	typedef Callback<void, uint32_t, Ptr<RdmaQueuePair>, DataRate> TraceWindowSizeChangeCallback;
+	// window size change callback: (node_id, qp)
+	typedef Callback<void, uint32_t, Ptr<RdmaQueuePair>> TraceWindowSizeChangeCallback;
 	TraceWindowSizeChangeCallback m_traceWindowSizeChangeCallback;
 
+	// INT header (HPCC) callback: (node_id, qp)
+	typedef Callback<void, uint32_t, Ptr<RdmaQueuePair>> TraceHpPerHopStateCallback;
+	TraceHpPerHopStateCallback m_traceHpPerHopStateCallback;
+
 	void SetNode(Ptr<Node> node);
-	void Setup(QpCompleteCallback cb, TraceWindowSizeChangeCallback wSizeCb); // setup shared data and callbacks with the QbbNetDevice
+	void Setup(QpCompleteCallback cb, TraceWindowSizeChangeCallback wSizeCb, TraceHpPerHopStateCallback hpPerHopStateCb); // setup shared data and callbacks with the QbbNetDevice
 	static uint64_t GetQpKey(uint32_t dip, uint16_t sport, uint16_t pg); // get the lookup key for m_qpMap
 	Ptr<RdmaQueuePair> GetQp(uint32_t dip, uint16_t sport, uint16_t pg); // get the qp
 	uint32_t GetNicIdxOfQp(Ptr<RdmaQueuePair> qp); // get the NIC index of the qp

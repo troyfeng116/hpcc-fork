@@ -184,7 +184,7 @@ RdmaHw::RdmaHw(){
 void RdmaHw::SetNode(Ptr<Node> node){
 	m_node = node;
 }
-void RdmaHw::Setup(QpCompleteCallback cb, TraceWindowSizeChangeCallback wSizeCb){
+void RdmaHw::Setup(QpCompleteCallback cb, TraceWindowSizeChangeCallback wSizeCb, TraceHpPerHopStateCallback hpPerHopStateCb){
 	for (uint32_t i = 0; i < m_nic.size(); i++){
 		Ptr<QbbNetDevice> dev = m_nic[i].dev;
 		if (dev == NULL)
@@ -201,6 +201,7 @@ void RdmaHw::Setup(QpCompleteCallback cb, TraceWindowSizeChangeCallback wSizeCb)
 	// setup qp complete callback
 	m_qpCompleteCallback = cb;
 	m_traceWindowSizeChangeCallback = wSizeCb;
+	m_traceHpPerHopStateCallback = hpPerHopStateCb;
 }
 
 uint32_t RdmaHw::GetNicIdxOfQp(Ptr<RdmaQueuePair> qp){
@@ -433,7 +434,7 @@ int RdmaHw::ReceiveAck(Ptr<Packet> p, CustomHeader &ch){
 	}else if (m_cc_mode == 10){
 		HandleAckHpPint(qp, p, ch);
 	}
-	m_traceWindowSizeChangeCallback(m_node->GetId(), qp, qp->m_rate);
+	m_traceWindowSizeChangeCallback(m_node->GetId(), qp);
 	// ACK may advance the on-the-fly window, allowing more packets to send
 	dev->TriggerTransmit();
 	return 0;
@@ -820,6 +821,9 @@ void RdmaHw::UpdateRateHp(Ptr<RdmaQueuePair> qp, Ptr<Packet> p, CustomHeader &ch
 				}
 				qp->hp.hop[i] = ih.hop[i];
 			}
+
+			// qp->hp states updated -> report
+			m_traceHpPerHopStateCallback(m_node->GetId(), qp);
 
 			DataRate new_rate;
 			int32_t new_incStage;

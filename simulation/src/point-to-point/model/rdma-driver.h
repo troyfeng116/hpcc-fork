@@ -20,7 +20,8 @@ namespace ns3
 
 		// trace
 		TracedCallback<Ptr<RdmaQueuePair>> m_traceQpComplete;
-		TracedCallback<uint32_t, Ptr<RdmaQueuePair>, DataRate> m_traceWindowSizeChangeCallback;
+		TracedCallback<uint32_t, Ptr<RdmaQueuePair>> m_traceWindowSizeChangeCallback;
+		TracedCallback<uint32_t, Ptr<RdmaQueuePair>> m_traceSenderHpPerHopStateUpdateCallback;
 
 		static TypeId GetTypeId(void);
 		RdmaDriver();
@@ -42,7 +43,10 @@ namespace ns3
 		void QpComplete(Ptr<RdmaQueuePair> q);
 
 		// callback when window size changes
-		void WindowSizeChangeCallback(uint32_t node_id, Ptr<RdmaQueuePair> qp, DataRate new_rate);
+		void WindowSizeChangeCallback(uint32_t node_id, Ptr<RdmaQueuePair> qp);
+
+		// callback when sender view of per-hop state changes
+		void SenderPerHopStateUpdateCallback(uint32_t node_id, Ptr<RdmaQueuePair> qp);
 	};
 
 } // namespace ns3

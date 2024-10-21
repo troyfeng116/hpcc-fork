@@ -5,58 +5,56 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-def get_file_suffix(topo, flow, cc_algo):
-    # type: (str, str, int, int) -> str
-    return '{topo}_{flow}_{cc_algo}'.format(
-        topo=topo, flow=flow, cc_algo=cc_algo
-    )
+from graph_helpers import get_file_suffix
 
-def process_wsize_trace_file(file_name, node_number):
+def process_qlen_trace_file(file_name, node_number):
     # type: (str, int) -> Tuple[List[str], List[str]]
     times = []
-    w_sizes = []
+    queue_lengths = []
+    ts_to_qlen_map = {}
 
     with open(file_name, 'r') as file:
-        # timestamp, node_id, sip, dip, sport, dport, new_rate
-        # 8550 0 0b000001 0b000601 10000 79 95166151454 4295000
         for line in file:
-            toks = line.split()
-            if len(toks) < 7:
+            parts = line.split()
+            if len(parts) < 4:
                 print('skipping {}'.format(line))
                 continue
-            time_ns = int(toks[0]) # time in ns
-            node = int(toks[1]) # node number
-            w_size = int(toks[6]) # window size in bytes
+            time_ns = int(parts[0]) # time ns
+            node = int(parts[1].split(':')[1]) # node number
+            queue_length = int(parts[3]) # queue length in bytes
 
+            # Filter by the given node number
             if node == node_number:
-                times.append(time_ns)
-                w_sizes.append(w_size)
+                if time_ns not in ts_to_qlen_map:
+                    ts_to_qlen_map[time_ns] = 0
+                ts_to_qlen_map[time_ns] += queue_length
 
-    print(len(times))
-    return times, w_sizes
+    for k, v in sorted(ts_to_qlen_map.items(), lambda a, b : a[0] - b[0]):
+        times.append(k)
+        queue_lengths.append(v)
+    return times, queue_lengths
 
-def get_wsize_out_png_name(file_suffix, node_num):
+def get_qlen_out_png_name(file_suffix, node_num):
     # type: (str, int) -> str
-    return "out/wsize_{file_suffix}_node_{node_num}.png".format(
+    return "out/qlen_{file_suffix}_node_{node_num}.png".format(
         file_suffix=file_suffix, node_num=node_num
     )
 
-# Plot window size over time
-def plot_wsize(node_num, cc_algo, times, send_rates, file_suffix):
+# Plot total queue length over time
+def plot_qlen(node_num, cc_algo, times, queue_lengths, file_suffix):
     # type: (int, str, List[int], List[int], str) -> None
     times_ms = [t / 1e6 for t in times]
-    send_rates_b_s = [r / 1e9 for r in send_rates]
 
     plt.figure(figsize=(10, 6))
-    plt.plot(times_ms, send_rates_b_s, label='Send rate (Bytes/s)', color='blue')
+    plt.plot(times_ms, queue_lengths, label='Queue Length (Bytes)', color='blue')
     plt.xlabel('Time (ms)')
-    plt.ylabel('Send rate (B/s)')
-    plt.title('Send rate Over Time for Node {} ({})'.format(node_num, cc_algo))
+    plt.ylabel('Queue Length (Bytes)')
+    plt.title('Queue Length Over Time for Node {} ({})'.format(node_num, cc_algo))
     plt.grid(True)
     # plt.legend()
     # plt.show()
     # Save the plot as a PNG file
-    out_file_name = get_wsize_out_png_name(file_suffix=file_suffix, node_num=node_num)
+    out_file_name = get_qlen_out_png_name(file_suffix=file_suffix, node_num=node_num)
     print('saving graph to {}'.format(out_file_name))
     plt.savefig(out_file_name)
     plt.close()
@@ -76,13 +74,13 @@ if __name__ == '__main__':
     cc_algo = args.cc_algo
 
     file_suffix = get_file_suffix(topo=topo, flow=flow, cc_algo=cc_algo)
-    trace_file = '../simulation/mix/wsize_{file_suffix}.txt'.format(file_suffix=file_suffix)
+    trace_file = 'qlen_traces/qlen_{file_suffix}.txt'.format(file_suffix=file_suffix)
 
-    times, send_rates = process_wsize_trace_file(file_name=trace_file, node_number=node_number)
-    plot_wsize(
+    times, queue_lengths = process_qlen_trace_file(file_name=trace_file, node_number=node_number)
+    plot_qlen(
         node_num=node_number,
         cc_algo=cc_algo,
         times=times,
-        send_rates=send_rates,
+        queue_lengths=queue_lengths,
         file_suffix=file_suffix
     )

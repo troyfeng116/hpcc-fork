@@ -6,7 +6,7 @@ from graph_helpers import get_file_suffix
 def run_trace_reader(file_name, file_suffix):
     output_file = 'qlen_traces/qlen_{file_suffix}.txt'.format(file_suffix=file_suffix)
 
-    command = './trace_reader {file_name}'.format(file_name=file_name)
+    command = '../trace_reader {file_name}'.format(file_name=file_name)
 
     with open(output_file, 'w') as output:
         # redirect output to file
@@ -23,6 +23,6 @@ if __name__ == '__main__':
     cc_algo = sys.argv[3]
 
     file_suffix = get_file_suffix(topo=topo, flow=flow, cc_algo=cc_algo)
-    file_name = '../simulation/mix/mix_{file_suffix}.tr'.format(file_suffix=file_suffix)
+    file_name = '../../simulation/mix/mix_{file_suffix}.tr'.format(file_suffix=file_suffix)
 
     run_trace_reader(file_name, file_suffix)
