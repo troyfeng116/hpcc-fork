@@ -16,15 +16,16 @@ def process_qlen_trace_file(file_name, node_number):
     with open(file_name, 'r') as file:
         for line in file:
             parts = line.split()
-            if len(parts) < 4:
+            if len(parts) < 11:
                 print('skipping {}'.format(line))
                 continue
             time_ns = int(parts[0]) # time ns
             node = int(parts[1].split(':')[1]) # node number
             queue_length = int(parts[3]) # queue length in bytes
+            packet_type = parts[10] # 'U' for data packet
 
             # Filter by the given node number
-            if node == node_number:
+            if packet_type == "U" and node == node_number:
                 if time_ns not in ts_to_qlen_map:
                     ts_to_qlen_map[time_ns] = 0
                 ts_to_qlen_map[time_ns] += queue_length
