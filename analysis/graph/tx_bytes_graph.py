@@ -1,11 +1,7 @@
 import argparse
 from typing import List, Tuple
 
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
-from graph_helpers import get_file_suffix
+from graph_helpers import get_file_suffix, plot_data_points
 
 def process_node_state_trace_file(file_name, node_number):
     # type: (str, int) -> Tuple[List[str], List[str]]
@@ -40,27 +36,8 @@ def get_tx_bytes_out_png_name(file_suffix, node_num):
         file_suffix=file_suffix, node_num=node_num
     )
 
-# Plot total transmitted bytes over time
-def plot_tx_bytes(node_num, cc_algo, times, tx_bytes, file_suffix):
-    # type: (int, str, List[int], List[int], str) -> None
-    times_ms = [t / 1e6 for t in times]
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(times_ms, tx_bytes, label='Transmitted Bytes', color='blue')
-    plt.xlabel('Time (ms)')
-    plt.ylabel('Transmitted Bytes')
-    plt.title('Transmitted Bytes Over Time for Node {} ({})'.format(node_num, cc_algo))
-    plt.grid(True)
-    # plt.legend()
-    # plt.show()
-    # Save the plot as a PNG file
-    out_file_name = get_tx_bytes_out_png_name(file_suffix=file_suffix, node_num=node_num)
-    print('saving graph to {}'.format(out_file_name))
-    plt.savefig(out_file_name)
-    plt.close()
-
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='graph window size')
+    parser = argparse.ArgumentParser(description='graph output bytes')
     parser.add_argument('--node', dest='node', action='store', type=int, default=0, help="node id")
     parser.add_argument('--flow', dest='flow', action='store', default='flow', help="the name of the flow file")
     parser.add_argument('--bw', dest="bw", action='store', default='100', help="the NIC bandwidth")
@@ -77,10 +54,12 @@ if __name__ == '__main__':
     trace_file = '../../simulation/mix/node_trace_{file_suffix}.txt'.format(file_suffix=file_suffix)
 
     times, tx_bytes = process_node_state_trace_file(file_name=trace_file, node_number=node_number)
-    plot_tx_bytes(
-        node_num=node_number,
-        cc_algo=cc_algo,
-        times=times,
-        tx_bytes=tx_bytes,
-        file_suffix=file_suffix
+    times_ms = [t / 1e6 for t in times]
+    plot_data_points(
+        times=times_ms,
+        data_points=tx_bytes,
+        xlabel='Time (ms)',
+        ylabel='Transmitted bytes',
+        title='Transmitted bytes Over Time for Node {} ({})'.format(node_number, cc_algo),
+        out_file_name=get_tx_bytes_out_png_name(file_suffix=file_suffix, node_num=node_number)
     )

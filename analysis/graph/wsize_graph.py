@@ -1,11 +1,7 @@
 import argparse
 from typing import List, Tuple
 
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
-from graph_helpers import get_file_suffix
+from graph_helpers import get_file_suffix, plot_data_points
 
 def process_wsize_trace_file(file_name, node_number):
     # type: (str, int) -> Tuple[List[str], List[str]]
@@ -37,26 +33,6 @@ def get_wsize_out_png_name(file_suffix, node_num):
         file_suffix=file_suffix, node_num=node_num
     )
 
-# Plot window size over time
-def plot_wsize(node_num, cc_algo, times, wsizes, file_suffix):
-    # type: (int, str, List[int], List[int], str) -> None
-    times_ms = [t / 1e6 for t in times]
-    # wsizes = [w / 1e9 for w in wsizes]
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(times_ms, wsizes, label='Window size (B)', color='blue')
-    plt.xlabel('Time (ms)')
-    plt.ylabel('Window size (B)')
-    plt.title('Window size Over Time for Node {} ({})'.format(node_num, cc_algo))
-    plt.grid(True)
-    # plt.legend()
-    # plt.show()
-    # Save the plot as a PNG file
-    out_file_name = get_wsize_out_png_name(file_suffix=file_suffix, node_num=node_num)
-    print('saving graph to {}'.format(out_file_name))
-    plt.savefig(out_file_name)
-    plt.close()
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='graph window size')
     parser.add_argument('--node', dest='node', action='store', type=int, default=0, help="node id")
@@ -75,10 +51,12 @@ if __name__ == '__main__':
     trace_file = '../../simulation/mix/wsize_{file_suffix}.txt'.format(file_suffix=file_suffix)
 
     times, wsizes = process_wsize_trace_file(file_name=trace_file, node_number=node_number)
-    plot_wsize(
-        node_num=node_number,
-        cc_algo=cc_algo,
-        times=times,
-        wsizes=wsizes,
-        file_suffix=file_suffix
+    times_ms = [t / 1e6 for t in times]
+    plot_data_points(
+        times=times_ms,
+        data_points=wsizes,
+        xlabel='Time (ms)',
+        ylabel='Window size (B)',
+        title='Window size Over Time for Node {} ({})'.format(node_number, cc_algo),
+        out_file_name=get_wsize_out_png_name(file_suffix=file_suffix, node_num=node_number)
     )

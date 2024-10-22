@@ -1,11 +1,7 @@
 import argparse
 from typing import List, Tuple
 
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
-from graph_helpers import get_file_suffix
+from graph_helpers import get_file_suffix, plot_data_points
 
 def process_sender_rate_trace_file(file_name, node_number):
     # type: (str, int) -> Tuple[List[str], List[str]]
@@ -37,28 +33,8 @@ def get_sender_rate_out_png_name(file_suffix, node_num):
         file_suffix=file_suffix, node_num=node_num
     )
 
-# Plot window size over time
-def plot_sender_rate(node_num, cc_algo, times, send_rates, file_suffix):
-    # type: (int, str, List[int], List[int], str) -> None
-    times_ms = [t / 1e6 for t in times]
-    send_rates_b_s = [r / 8 for r in send_rates]  # bit rate to bytes
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(times_ms, send_rates_b_s, label='Send rate (Bytes/s)', color='blue')
-    plt.xlabel('Time (ms)')
-    plt.ylabel('Send rate (B/s)')
-    plt.title('Send rate Over Time for Node {} ({})'.format(node_num, cc_algo))
-    plt.grid(True)
-    # plt.legend()
-    # plt.show()
-    # Save the plot as a PNG file
-    out_file_name = get_sender_rate_out_png_name(file_suffix=file_suffix, node_num=node_num)
-    print('saving graph to {}'.format(out_file_name))
-    plt.savefig(out_file_name)
-    plt.close()
-
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='graph window size')
+    parser = argparse.ArgumentParser(description='graph sender rate')
     parser.add_argument('--node', dest='node', action='store', type=int, default=0, help="node id")
     parser.add_argument('--flow', dest='flow', action='store', default='flow', help="the name of the flow file")
     parser.add_argument('--bw', dest="bw", action='store', default='100', help="the NIC bandwidth")
@@ -75,10 +51,12 @@ if __name__ == '__main__':
     trace_file = '../../simulation/mix/wsize_{file_suffix}.txt'.format(file_suffix=file_suffix)
 
     times, send_rates = process_sender_rate_trace_file(file_name=trace_file, node_number=node_number)
-    plot_sender_rate(
-        node_num=node_number,
-        cc_algo=cc_algo,
-        times=times,
-        send_rates=send_rates,
-        file_suffix=file_suffix
+    times_ms = [t / 1e6 for t in times]
+    plot_data_points(
+        times=times_ms,
+        data_points=send_rates,
+        xlabel='Time (ms)',
+        ylabel='Send rate (B/s)',
+        title='Send rate Over Time for Node {} ({})'.format(node_number, cc_algo),
+        out_file_name=get_sender_rate_out_png_name(file_suffix=file_suffix, node_num=node_number)
     )
