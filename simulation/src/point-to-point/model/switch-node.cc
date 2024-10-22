@@ -14,6 +14,8 @@
 
 namespace ns3 {
 
+NS_OBJECT_ENSURE_REGISTERED(SwitchNode);
+
 TypeId SwitchNode::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SwitchNode")
@@ -39,6 +41,8 @@ TypeId SwitchNode::GetTypeId (void)
 			UintegerValue(9000),
 			MakeUintegerAccessor(&SwitchNode::m_maxRtt),
 			MakeUintegerChecker<uint32_t>())
+	.AddTraceSource ("QbbNodeReport", "Reports for switch node (ex. txBytes)",
+			MakeTraceSourceAccessor (&SwitchNode::m_traceNodeState))
   ;
   return tid;
 }
@@ -300,6 +304,11 @@ void SwitchNode::SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Pack
 		}
 	}
 	m_txBytes[ifIndex] += p->GetSize();
+	// TODO: TRACE
+	uint64_t total_txBytes = 0;
+	for (uint32_t i = 0; i < 257; i++)
+		total_txBytes += m_txBytes[i];
+	m_traceNodeState(m_id, total_txBytes);
 	m_lastPktSize[ifIndex] = p->GetSize();
 	m_lastPktTs[ifIndex] = Simulator::Now().GetTimeStep();
 }

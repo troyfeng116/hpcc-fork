@@ -11,6 +11,7 @@ TOPOLOGY_FILE mix/{topo}.txt
 FLOW_FILE mix/{trace}.txt
 TRACE_FILE mix/trace.txt
 TRACE_OUTPUT_FILE mix/mix_{topo}_{trace}_{cc}{failure}.tr
+NODE_TRACE_OUTPUT_FILE mix/node_trace_{topo}_{trace}_{cc}{failure}.txt
 FCT_OUTPUT_FILE mix/fct_{topo}_{trace}_{cc}{failure}.txt
 WSIZE_OUTPUT_FILE mix/wsize_{topo}_{trace}_{cc}{failure}.txt
 SENDER_VIEW_OUTPUT_FILE mix/sender_view_{topo}_{trace}_{cc}{failure}.txt

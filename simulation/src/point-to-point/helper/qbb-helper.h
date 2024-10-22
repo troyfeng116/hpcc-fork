@@ -154,10 +154,13 @@ public:
   static void DequeueDetailCallback(FILE* file, Ptr<QbbNetDevice>, Ptr<const Packet> p, uint32_t qidx);
   static void DropDetailCallback(FILE* file, Ptr<QbbNetDevice>, Ptr<const Packet> p, uint32_t qidx);
   static void QpDequeueCallback(FILE *file, Ptr<QbbNetDevice>, Ptr<const Packet>, Ptr<RdmaQueuePair>);
+  static void NodeStateDetailCallback(FILE *file, Ptr<Node>, uint32_t, uint64_t);
 
   void EnableTracingDevice(FILE *file, Ptr<QbbNetDevice>);
 
   void EnableTracing(FILE *file, NodeContainer node_container);
+
+  void EnableTracingNode(FILE *file, NodeContainer node_container);
 
 private:
   /**

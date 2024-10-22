@@ -51,6 +51,7 @@ std::string fct_output_file = "fct.txt";
 std::string wsize_output_file = "wsize.txt";
 std::string sender_view_output_file = "sender_view.txt";
 std::string pfc_output_file = "pfc.txt";
+std::string node_trace_output_file = "node_trace.txt";
 
 double alpha_resume_interval = 55, rp_timer, ewma_gain = 1 / 16;
 double rate_decrease_interval = 4;
@@ -493,6 +494,17 @@ int main(int argc, char *argv[])
 					trace_output_file = trace_output_file + std::string(argv[2]);
 				}
 				std::cout << "TRACE_OUTPUT_FILE\t\t" << trace_output_file << "\n";
+			}
+			else if (key.compare("NODE_TRACE_OUTPUT_FILE") == 0)
+			{
+				std::string v;
+				conf >> v;
+				node_trace_output_file = v;
+				if (argc > 2)
+				{
+					node_trace_output_file = node_trace_output_file + std::string(argv[2]);
+				}
+				std::cout << "NODE_TRACE_OUTPUT_FILE\t\t" << node_trace_output_file << "\n";
 			}
 			else if (key.compare("SIMULATOR_STOP_TIME") == 0)
 			{
@@ -989,8 +1001,11 @@ int main(int argc, char *argv[])
 	}
 
 	FILE *trace_output = fopen(trace_output_file.c_str(), "w");
-	if (enable_trace)
+	FILE *node_trace_output = fopen(node_trace_output_file.c_str(), "w");
+	if (enable_trace) {
 		qbb.EnableTracing(trace_output, trace_nodes);
+		qbb.EnableTracingNode(node_trace_output, trace_nodes);
+	}
 
 	// dump link speed to trace file
 	{

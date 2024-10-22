@@ -394,6 +394,15 @@ void QbbHelper::QpDequeueCallback(FILE *file, Ptr<QbbNetDevice> dev, Ptr<const P
 	tr.Serialize(file);
 }
 
+void QbbHelper::NodeStateDetailCallback(FILE *file, Ptr<Node> node, uint32_t node_id, uint64_t total_txBytes){
+  // for (uint32_t i = 0; i < 257; i++)
+	// 	total_txBytes += txBytes[i];
+  // ts, node_id, txBytes
+  fprintf(file, "%lu %lu %lu\n",
+    Simulator::Now().GetTimeStep(),
+    node_id, total_txBytes);
+}
+
 void QbbHelper::EnableTracingDevice(FILE *file, Ptr<QbbNetDevice> nd){
 	uint32_t nodeid = nd->GetNode ()->GetId ();
 	uint32_t deviceid = nd->GetIfIndex ();
@@ -441,6 +450,22 @@ void QbbHelper::EnableTracing(FILE *file, NodeContainer node_container){
 				EnableTracingDevice(file, DynamicCast<QbbNetDevice>(node->GetDevice(j)));
         }
     }
+}
+
+void QbbHelper::EnableTracingNode(FILE *file, NodeContainer node_container){
+  for (NodeContainer::Iterator i = node_container.Begin (); i != node_container.End (); ++i){
+    Ptr<Node> node = *i;
+    // for (uint32_t j = 0; j < node->GetNDevices (); ++j){
+    //   if (node->GetDevice(j)->IsQbb()){
+    //     #if 1
+    //     Ptr<QbbNetDevice> nd = DynamicCast<QbbNetDevice>(node->GetDevice(j));
+    //     nd->TraceConnectWithoutContext("QbbNodeReport", MakeBoundCallback (&QbbHelper::NodeStateDetailCallback, file, nd));
+    //     #endif
+    //   }
+    // }
+    // Ptr<QbbNetDevice> nd = DynamicCast<QbbNetDevice>(node->GetDevice(j));
+    node->TraceConnectWithoutContext("QbbNodeReport", MakeBoundCallback (&QbbHelper::NodeStateDetailCallback, file, node));
+  }
 }
 
 } // namespace ns3
