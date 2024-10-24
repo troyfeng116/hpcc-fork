@@ -28,8 +28,11 @@ def process_node_state_trace_file(file_name, node_num):
             # Filter by the given node number
             if node == node_num:
                 if time_ns not in ts_to_tx_bytes_map:
-                    ts_to_tx_bytes_map[time_ns] = 0
-                ts_to_tx_bytes_map[time_ns] += tx_bytes
+                    ts_to_tx_bytes_map[time_ns] = tx_bytes
+                ts_to_tx_bytes_map[time_ns] = max(
+                    ts_to_tx_bytes_map[time_ns],
+                    tx_bytes,
+                )
 
     for k, v in sorted(ts_to_tx_bytes_map.items(), lambda a, b : a[0] - b[0]):
         times.append(k)
