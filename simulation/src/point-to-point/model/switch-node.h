@@ -56,6 +56,11 @@ public:
 
 	// (node_id, total_txBytes)
 	TracedCallback<uint32_t, uint64_t> m_traceNodeState; // the trace for node state
+
+	// qLen (mis)reporting function
+	typedef Callback<uint64_t, uint64_t> GetQlenToReportFunction;
+	GetQlenToReportFunction m_getQlenToReport;
+	void SetupQlenReportingFunction(GetQlenToReportFunction getQlenToReport);
 };
 
 } /* namespace ns3 */

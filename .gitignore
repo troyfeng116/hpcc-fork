@@ -7,3 +7,5 @@ simulation/mix
 
 .lock-waf_linux2_build
 **.out
+
+.vscode

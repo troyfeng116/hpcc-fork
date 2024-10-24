@@ -47,6 +47,10 @@ TypeId SwitchNode::GetTypeId (void)
   return tid;
 }
 
+uint64_t defaultQlenReporter(uint64_t actual_qlen){
+	return actual_qlen;
+}
+
 SwitchNode::SwitchNode(){
 	m_ecmpSeed = m_id;
 	m_node_type = 1;
@@ -61,6 +65,12 @@ SwitchNode::SwitchNode(){
 		m_lastPktSize[i] = m_lastPktTs[i] = 0;
 	for (uint32_t i = 0; i < pCnt; i++)
 		m_u[i] = 0;
+	// default reporting function: identity
+	m_getQlenToReport = MakeCallback(&defaultQlenReporter);
+}
+
+void SwitchNode::SetupQlenReportingFunction(GetQlenToReportFunction getQlenToReport){
+	m_getQlenToReport = getQlenToReport;
 }
 
 int SwitchNode::GetOutDev(Ptr<const Packet> p, CustomHeader &ch){
@@ -225,7 +235,9 @@ void SwitchNode::SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Pack
 			IntHeader *ih = (IntHeader*)&buf[PppHeader::GetStaticSize() + 20 + 8 + 6]; // ppp, ip, udp, SeqTs, INT
 			Ptr<QbbNetDevice> dev = DynamicCast<QbbNetDevice>(m_devices[ifIndex]);
 			if (m_ccMode == 3){ // HPCC
-				ih->PushHop(Simulator::Now().GetTimeStep(), m_txBytes[ifIndex], dev->GetQueue()->GetNBytesTotal(), dev->GetDataRate().GetBitRate());
+				uint64_t actual_qlen = dev->GetQueue()->GetNBytesTotal();
+				uint64_t qlen_to_report = m_getQlenToReport(actual_qlen);
+				ih->PushHop(Simulator::Now().GetTimeStep(), m_txBytes[ifIndex], qlen_to_report, dev->GetDataRate().GetBitRate());
 			}else if (m_ccMode == 10){ // HPCC-PINT
 				uint64_t t = Simulator::Now().GetTimeStep();
 				uint64_t dt = t - m_lastPktTs[ifIndex];

@@ -47,6 +47,7 @@ bool enable_qcn = true, use_dynamic_pfc_threshold = true;
 uint32_t packet_payload_size = 1000, l2_chunk_size = 0, l2_ack_interval = 0;
 double pause_time = 5, simulator_stop_time = 3.01;
 std::string data_rate, link_delay, topology_file, flow_file, trace_file, trace_output_file;
+std::string misreport_file;
 std::string fct_output_file = "fct.txt";
 std::string wsize_output_file = "wsize.txt";
 std::string sender_view_output_file = "sender_view.txt";
@@ -91,7 +92,7 @@ unordered_map<uint64_t, double> rate2pmax;
 /************************************************
  * Runtime varibles
  ***********************************************/
-std::ifstream topof, flowf, tracef;
+std::ifstream topof, misreportf, flowf, tracef;
 
 NodeContainer n;
 
@@ -357,6 +358,11 @@ uint64_t get_nic_rate(NodeContainer &n){
 			return DynamicCast<QbbNetDevice>(n.Get(i)->GetDevice(1))->GetDataRate().GetBitRate();
 }
 
+uint64_t sample_qlen_mapping(uint64_t actual_qlen){
+	// printf("[sample_qlen_mapping] %lu\n", actual_qlen);
+	return 3 * actual_qlen;
+}
+
 int main(int argc, char *argv[])
 {
 	clock_t begint, endt;
@@ -469,6 +475,13 @@ int main(int argc, char *argv[])
 				conf >> v;
 				topology_file = v;
 				std::cout << "TOPOLOGY_FILE\t\t\t" << topology_file << "\n";
+			}
+			else if (key.compare("MISREPORT_FILE") == 0)
+			{
+				std::string v;
+				conf >> v;
+				misreport_file = v;
+				std::cout << "MISREPORT_FILE\t\t\t" << misreport_file << "\n";
 			}
 			else if (key.compare("FLOW_FILE") == 0)
 			{
@@ -739,6 +752,18 @@ int main(int argc, char *argv[])
 	flowf >> flow_num;
 	tracef >> trace_num;
 
+	misreportf.open(misreport_file.c_str());
+	uint32_t misreport_num;
+	misreportf >> misreport_num;
+
+	std::vector<std::string> node_reporting_profile(node_num, "NONE");
+	for (uint32_t i = 0; i < misreport_num; i++)
+	{
+		uint32_t sid;
+		std::string reporting_profile;
+		misreportf >> sid >> reporting_profile;
+		node_reporting_profile[sid] = reporting_profile;
+	}
 
 	//n.Create(node_num);
 	std::vector<uint32_t> node_type(node_num, 0);
@@ -755,6 +780,10 @@ int main(int argc, char *argv[])
 			Ptr<SwitchNode> sw = CreateObject<SwitchNode>();
 			n.Add(sw);
 			sw->SetAttribute("EcnEnabled", BooleanValue(enable_qcn));
+			if (node_reporting_profile[i] == "TRIPLE") {
+				printf("setting node %d reporting function to %s\n", i, node_reporting_profile[i].c_str());
+				sw->SetupQlenReportingFunction(MakeCallback(&sample_qlen_mapping));
+			}
 		}
 	}
 

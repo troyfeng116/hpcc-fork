@@ -1,9 +1,15 @@
 import argparse
 from typing import List, Tuple
 
-from graph_helpers import get_file_suffix, plot_data_points
+from graph_helpers import (
+    get_file_suffix,
+    get_graph_title,
+    get_mix_trace_filename,
+    get_out_png_filename,
+    plot_data_points,
+)
 
-def process_wsize_trace_file(file_name, node_number):
+def process_wsize_trace_file(file_name, node_num):
     # type: (str, int) -> Tuple[List[str], List[str]]
     times = []
     w_sizes = []
@@ -20,18 +26,12 @@ def process_wsize_trace_file(file_name, node_number):
             node = int(toks[1]) # node number
             w_size = int(toks[7]) # window size in bytes
 
-            if node == node_number:
+            if node == node_num:
                 times.append(time_ns)
                 w_sizes.append(w_size)
 
     print(len(times))
     return times, w_sizes
-
-def get_wsize_out_png_name(file_suffix, node_num):
-    # type: (str, int) -> str
-    return "out/wsize_{file_suffix}_node_{node_num}.png".format(
-        file_suffix=file_suffix, node_num=node_num
-    )
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='graph window size')
@@ -39,24 +39,37 @@ if __name__ == '__main__':
     parser.add_argument('--flow', dest='flow', action='store', default='flow', help="the name of the flow file")
     parser.add_argument('--bw', dest="bw", action='store', default='100', help="the NIC bandwidth")
     parser.add_argument('--topo', dest='topo', action='store', default='fat', help="the name of the topology file")
+    parser.add_argument('--misrep', dest='misrep', action='store', default='none', help="the name of the misreporting profile file")
     parser.add_argument('--cc_algo', dest='cc_algo', action='store', default='hp95ai50', help="CC algo with params")
     args = parser.parse_args()
 
-    node_number = args.node
+    node_num = args.node
     topo=args.topo
+    misrep=args.misrep
     flow=args.flow
     cc_algo = args.cc_algo
 
-    file_suffix = get_file_suffix(topo=topo, flow=flow, cc_algo=cc_algo)
-    trace_file = '../../simulation/mix/wsize_{file_suffix}.txt'.format(file_suffix=file_suffix)
+    file_suffix = get_file_suffix(topo=topo, flow=flow, cc_algo=cc_algo, misrep=misrep)
+    trace_file = get_mix_trace_filename(trace_name='wsize', file_suffix=file_suffix)
 
-    times, wsizes = process_wsize_trace_file(file_name=trace_file, node_number=node_number)
+    times, wsizes = process_wsize_trace_file(file_name=trace_file, node_num=node_num)
     times_ms = [t / 1e6 for t in times]
+    graph_title = get_graph_title(
+        metric_name='Window size',
+        node_num=node_num,
+        cc_algo=cc_algo,
+        misrep=misrep,
+    )
+    out_png_name = get_out_png_filename(
+        graph_metric='wsize',
+        file_suffix=file_suffix,
+        node_num=node_num,
+    )
     plot_data_points(
         times=times_ms,
         data_points=wsizes,
         xlabel='Time (ms)',
         ylabel='Window size (B)',
-        title='Window size Over Time for Node {} ({})'.format(node_number, cc_algo),
-        out_file_name=get_wsize_out_png_name(file_suffix=file_suffix, node_num=node_number)
+        title=graph_title,
+        out_file_name=out_png_name,
     )
