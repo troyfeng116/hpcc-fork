@@ -15,6 +15,7 @@ def process_qlen_trace_file(file_name, node_num):
     ts_to_qlen_map = {}
 
     with open(file_name, 'r') as file:
+        # 2000055540 n:338 4:3 100608 Enqu ecn:0 0b00d101 0b012301 10000 100 U 161000 0 3 1048(1000)
         for line in file:
             parts = line.split()
             if len(parts) < 11:
@@ -22,11 +23,12 @@ def process_qlen_trace_file(file_name, node_num):
                 continue
             time_ns = int(parts[0]) # time ns
             node = int(parts[1].split(':')[1]) # node number
+            event_type = parts[4]
             queue_length = int(parts[3]) # queue length in bytes
             packet_type = parts[10] # 'U' for data packet
 
             # Filter by the given node number
-            if packet_type == "U" and node == node_num:
+            if event_type == "Dequ" and packet_type == "U" and node == node_num:
                 if time_ns not in ts_to_qlen_map:
                     ts_to_qlen_map[time_ns] = 0
                 ts_to_qlen_map[time_ns] += queue_length
