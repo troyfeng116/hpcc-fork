@@ -368,6 +368,11 @@ uint64_t additive_qlen_mapping(uint64_t actual_qlen){
 	return actual_qlen + 10009;
 }
 
+uint64_t zero_qlen_mapping(uint64_t actual_qlen){
+	// printf("[zero_qlen_mapping] %lu\n", actual_qlen);
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	clock_t begint, endt;
@@ -791,6 +796,9 @@ int main(int argc, char *argv[])
 			} else if (node_reporting_profile[i] == "ADD") {
 				printf("setting node %d reporting function to %s\n", i, node_reporting_profile[i].c_str());
 				sw->SetupQlenReportingFunction(MakeCallback(&additive_qlen_mapping));
+			} else if (node_reporting_profile[i] == "ZERO") {
+				printf("setting node %d reporting function to %s\n", i, node_reporting_profile[i].c_str());
+				sw->SetupQlenReportingFunction(MakeCallback(&zero_qlen_mapping));
 			}
 		}
 	}
