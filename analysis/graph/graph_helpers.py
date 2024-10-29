@@ -1,7 +1,9 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+COLORS = ['blue', 'red', 'green', 'orange', 'purple', 'brown', 'gray']
 
 def get_file_suffix(topo, flow, cc_algo, misrep):
     # type: (str, str, str, str) -> str
@@ -50,6 +52,23 @@ def plot_data_points(times, data_points, xlabel, ylabel, title, out_file_name):
     plt.grid(True)
     # plt.legend()
     # plt.show()
+
+    # Save the plot as a PNG file
+    print('saving graph to {}'.format(out_file_name))
+    plt.savefig(out_file_name)
+    plt.close()
+
+# Plot multiple data points over time in stacks
+def plot_stacked_data_points(data_points_li, xlabel, ylabel, title, out_file_name):
+    # type: (List[Tuple[str, List[int], List[int]]], str, str, str, str) -> None
+    plt.figure(figsize=(10, 6))
+    for idx, (label, times, data_points) in enumerate(data_points_li):
+        plt.plot(times, data_points, color=COLORS[idx % len(COLORS)], label=label)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.grid(True)
+    plt.legend()
 
     # Save the plot as a PNG file
     print('saving graph to {}'.format(out_file_name))
