@@ -99,9 +99,10 @@ if __name__ == "__main__":
 
 	config_name = "mix/config_%s_%s_%s_%s%s.txt"%(topo, misrep, trace, args.cc, failure)
 
-	kmax_map = "2 %d %d %d %d"%(bw*1000000000, 400*bw/25, bw*4*1000000000, 400*bw*4/25)
-	kmin_map = "2 %d %d %d %d"%(bw*1000000000, 100*bw/25, bw*4*1000000000, 100*bw*4/25)
-	pmax_map = "2 %d %.2f %d %.2f"%(bw*1000000000, 0.2, bw*4*1000000000, 0.2)
+	bw_gbps = int(bw*1e9)
+	kmax_map = "3 %d %d %d %d %d %d"%(bw_gbps, 400*bw/25, bw_gbps*4, 400*bw*4/25, bw_gbps//2, 400*bw*1/50)
+	kmin_map = "3 %d %d %d %d %d %d"%(bw_gbps, 100*bw/25, bw_gbps*4, 100*bw*4/25, bw_gbps//2, 100*bw*1/50)
+	pmax_map = "3 %d %.2f %d %.2f %d %.2f"%(bw_gbps, 0.2, bw_gbps*4, 0.2, bw_gbps//2, 0.2)
 	if (args.cc.startswith("dcqcn")):
 		ai = 5 * bw / 25
 		hai = 50 * bw /25

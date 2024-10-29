@@ -358,9 +358,14 @@ uint64_t get_nic_rate(NodeContainer &n){
 			return DynamicCast<QbbNetDevice>(n.Get(i)->GetDevice(1))->GetDataRate().GetBitRate();
 }
 
-uint64_t sample_qlen_mapping(uint64_t actual_qlen){
-	// printf("[sample_qlen_mapping] %lu\n", actual_qlen);
+uint64_t triple_qlen_mapping(uint64_t actual_qlen){
+	// printf("[triple_qlen_mapping] %lu\n", actual_qlen);
 	return 3 * actual_qlen;
+}
+
+uint64_t additive_qlen_mapping(uint64_t actual_qlen){
+	// printf("[additive_qlen_mapping] %lu\n", actual_qlen);
+	return actual_qlen + 10009;
 }
 
 int main(int argc, char *argv[])
@@ -782,11 +787,13 @@ int main(int argc, char *argv[])
 			sw->SetAttribute("EcnEnabled", BooleanValue(enable_qcn));
 			if (node_reporting_profile[i] == "TRIPLE") {
 				printf("setting node %d reporting function to %s\n", i, node_reporting_profile[i].c_str());
-				sw->SetupQlenReportingFunction(MakeCallback(&sample_qlen_mapping));
+				sw->SetupQlenReportingFunction(MakeCallback(&triple_qlen_mapping));
+			} else if (node_reporting_profile[i] == "ADD") {
+				printf("setting node %d reporting function to %s\n", i, node_reporting_profile[i].c_str());
+				sw->SetupQlenReportingFunction(MakeCallback(&additive_qlen_mapping));
 			}
 		}
 	}
-
 
 	NS_LOG_INFO("Create nodes.");
 
