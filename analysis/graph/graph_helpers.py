@@ -1,7 +1,10 @@
+import os
 from typing import List, Optional, Tuple
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
 COLORS = ['blue', 'red', 'green', 'orange', 'purple', 'brown', 'gray']
 
@@ -27,7 +30,7 @@ def get_graph_title(metric_name, node_num, cc_algo, misrep, hop_node_num=None):
 # path to simulation output trace file in `simulation/mix/`
 def get_mix_trace_filename(trace_name, file_suffix, file_type='txt'):
     # type: (str, str, Optional[str]) -> str
-    return '../../simulation/mix/{trace_name}_{file_suffix}.{file_type}'.format(
+    return script_dir + '/../../simulation/mix/{trace_name}_{file_suffix}.{file_type}'.format(
         trace_name=trace_name, file_suffix=file_suffix, file_type=file_type
     )
 
@@ -37,7 +40,7 @@ def get_out_png_filename(graph_metric, file_suffix, node_num, hop_node_num=None)
     hop_node_str = '' if hop_node_num is None else '_hopnode_{hop_node_num}'.format(
         hop_node_num=hop_node_num
     )
-    return "out/{graph_metric}_{file_suffix}_node_{node_num}{hop_node_str}.png".format(
+    return script_dir + "/out/{graph_metric}_{file_suffix}_node_{node_num}{hop_node_str}.png".format(
         graph_metric=graph_metric, file_suffix=file_suffix, node_num=node_num, hop_node_str=hop_node_str
     )
 
