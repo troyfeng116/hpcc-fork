@@ -33,6 +33,8 @@ protected:
 
 	uint32_t m_ackHighPrio; // set high priority for ACK/NACK
 
+	uint32_t m_reportingProbPercent; // probability of applying misreporting function to qLen
+
 private:
 	int GetOutDev(Ptr<const Packet>, CustomHeader &ch);
 	void SendToDev(Ptr<Packet>p, CustomHeader &ch);
@@ -61,6 +63,7 @@ public:
 	typedef Callback<uint64_t, uint64_t> GetQlenToReportFunction;
 	GetQlenToReportFunction m_getQlenToReport;
 	void SetupQlenReportingFunction(GetQlenToReportFunction getQlenToReport);
+	void SetReportingProbPercent(uint32_t prob_percent);
 };
 
 } /* namespace ns3 */

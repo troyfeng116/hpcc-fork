@@ -767,12 +767,18 @@ int main(int argc, char *argv[])
 	misreportf >> misreport_num;
 
 	std::vector<std::string> node_reporting_profile(node_num, "NONE");
+	std::vector<uint32_t> node_reporting_prob_percent(node_num, 100);
 	for (uint32_t i = 0; i < misreport_num; i++)
 	{
 		uint32_t sid;
 		std::string reporting_profile;
+		uint32_t prob_percent;
 		misreportf >> sid >> reporting_profile;
 		node_reporting_profile[sid] = reporting_profile;
+		if (misreportf >> prob_percent) {
+			cout << "non-default prob_percent " << prob_percent << '\n';
+			node_reporting_prob_percent[sid] = prob_percent;
+		}
 	}
 
 	//n.Create(node_num);
@@ -783,6 +789,14 @@ int main(int argc, char *argv[])
 		topof >> sid;
 		node_type[sid] = 1;
 	}
+
+	std::unordered_map<std::string, uint64_t (*)(uint64_t)> reporting_fn_map = {
+		{"TRIPLE", &triple_qlen_mapping},
+		{"ADD", &additive_qlen_mapping},
+		{"ZERO", &zero_qlen_mapping},
+	};
+	
+
 	for (uint32_t i = 0; i < node_num; i++){
 		if (node_type[i] == 0)
 			n.Add(CreateObject<Node>());
@@ -790,15 +804,11 @@ int main(int argc, char *argv[])
 			Ptr<SwitchNode> sw = CreateObject<SwitchNode>();
 			n.Add(sw);
 			sw->SetAttribute("EcnEnabled", BooleanValue(enable_qcn));
-			if (node_reporting_profile[i] == "TRIPLE") {
-				printf("setting node %d reporting function to %s\n", i, node_reporting_profile[i].c_str());
-				sw->SetupQlenReportingFunction(MakeCallback(&triple_qlen_mapping));
-			} else if (node_reporting_profile[i] == "ADD") {
-				printf("setting node %d reporting function to %s\n", i, node_reporting_profile[i].c_str());
-				sw->SetupQlenReportingFunction(MakeCallback(&additive_qlen_mapping));
-			} else if (node_reporting_profile[i] == "ZERO") {
-				printf("setting node %d reporting function to %s\n", i, node_reporting_profile[i].c_str());
-				sw->SetupQlenReportingFunction(MakeCallback(&zero_qlen_mapping));
+			std::string report_profile = node_reporting_profile[i];
+			if (reporting_fn_map.find(report_profile) != reporting_fn_map.end()) {
+				printf("setting node %d reporting function to %s with prob %d\n", i, report_profile.c_str(), node_reporting_prob_percent[i]);
+				sw->SetupQlenReportingFunction(MakeCallback(reporting_fn_map[report_profile]));
+				sw->SetReportingProbPercent(node_reporting_prob_percent[i]);
 			}
 		}
 	}

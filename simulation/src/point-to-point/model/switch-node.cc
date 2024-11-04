@@ -65,12 +65,20 @@ SwitchNode::SwitchNode(){
 		m_lastPktSize[i] = m_lastPktTs[i] = 0;
 	for (uint32_t i = 0; i < pCnt; i++)
 		m_u[i] = 0;
+
+	// default reporting probability: 0%
+	m_reportingProbPercent = 0;
 	// default reporting function: identity
 	m_getQlenToReport = MakeCallback(&defaultQlenReporter);
 }
 
 void SwitchNode::SetupQlenReportingFunction(GetQlenToReportFunction getQlenToReport){
 	m_getQlenToReport = getQlenToReport;
+}
+
+void SwitchNode::SetReportingProbPercent(uint32_t prob_percent) {
+	std::cout << "node " << m_id << ": setting m_reportingProbPercent to " << prob_percent << '\n';
+	m_reportingProbPercent = prob_percent;
 }
 
 int SwitchNode::GetOutDev(Ptr<const Packet> p, CustomHeader &ch){
@@ -236,7 +244,11 @@ void SwitchNode::SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Pack
 			Ptr<QbbNetDevice> dev = DynamicCast<QbbNetDevice>(m_devices[ifIndex]);
 			if (m_ccMode == 3){ // HPCC
 				uint64_t actual_qlen = dev->GetQueue()->GetNBytesTotal();
-				uint64_t qlen_to_report = m_getQlenToReport(actual_qlen);
+				uint64_t qlen_to_report = actual_qlen;
+				// probabilistically misreport
+				if (m_reportingProbPercent > 0 && (rand() % 100 + 1) <= m_reportingProbPercent) {
+					qlen_to_report = m_getQlenToReport(actual_qlen);
+				}
 				ih->PushHop(Simulator::Now().GetTimeStep(), m_txBytes[ifIndex], qlen_to_report, dev->GetDataRate().GetBitRate());
 			}else if (m_ccMode == 10){ // HPCC-PINT
 				uint64_t t = Simulator::Now().GetTimeStep();
