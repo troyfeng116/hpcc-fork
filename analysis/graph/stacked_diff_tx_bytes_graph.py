@@ -45,7 +45,7 @@ if __name__ == '__main__':
     baseline_file_suffix = get_file_suffix(topo=topo, flow=flow, cc_algo=cc_algo, misrep='none')
     baseline_trace_file = get_mix_trace_filename(trace_name='node_trace', file_suffix=baseline_file_suffix)
     baseline_times, baseline_tx_bytes = process_node_state_trace_file(file_name=baseline_trace_file, node_num=node_num)
-    baseline_times_ms = [t / 1e6 for t in times]
+    baseline_times_ms = [t / 1e6 for t in baseline_times]
     data_points_li.append(('none', baseline_times_ms, baseline_tx_bytes))
     baseline_ts_map = {t:tx for t, tx in zip(baseline_times_ms, baseline_tx_bytes)}
 

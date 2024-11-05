@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
-COLORS = ['blue', 'red', 'green', 'orange', 'purple', 'brown', 'gray', 'pink', 'lawngreen', 'paleturquoise', 'lightblue']
+COLORS = ['blue', 'red', 'green', 'orange', 'purple', 'brown', 'gray', 'pink', 'lawngreen', 'paleturquoise', 'black']
 
 def get_file_suffix(topo, flow, cc_algo, misrep):
     # type: (str, str, str, str) -> str
