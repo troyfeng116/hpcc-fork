@@ -3,6 +3,7 @@ from typing import List, Optional, Tuple
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import numpy as np
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -97,10 +98,15 @@ def plot_data_points(times, data_points, xlabel, ylabel, title, out_file_name):
 # Plot multiple data points over time in stacks
 def plot_stacked_data_points(data_points_li, xlabel, ylabel, title, out_file_name):
     # type: (List[Tuple[str, List[int], List[int]]], str, str, str, str) -> None
+    
+    # (experiment_name, timestamps, data_points)
     data_points_li.sort(key=lambda x: x[0])
     plt.figure(figsize=(10, 6))
+    
+    cmap = plt.get_cmap('tab10')
+    colors = cmap(np.linspace(0, 1, len(data_points_li)))
     for idx, (label, times, data_points) in enumerate(data_points_li):
-        plt.plot(times, data_points, color=COLORS[idx % len(COLORS)], label=label)
+        plt.plot(times, data_points, color=colors[idx % len(colors)], label=label)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
