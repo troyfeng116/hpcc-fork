@@ -36,6 +36,7 @@ if __name__ == '__main__':
     parser.add_argument('--flow', dest='flow', action='store', default='mini_flow', help="the name of the flow file")
     parser.add_argument('--topo', dest='topo', action='store', default='mini_topology', help="the name of the topology file")
     parser.add_argument('--cc_algo', dest='cc_algo', action='store', default='hp95ai50', help="CC algo with params")
+    parser.add_argument('--rtt_ns', dest='rtt_ns', action='store', type=int, default=None, help="RTT time (ns) for x-axis labels")
     parser.add_argument('--out_label', dest='out_label', action='store', required=True, help="label for output PNG file")
     args = parser.parse_args()
 
@@ -49,6 +50,7 @@ if __name__ == '__main__':
 
     flow=args.flow
     cc_algo = args.cc_algo
+    rtt_ns = args.rtt_ns
     out_label = args.out_label
     # [label, times, tx_bytes]
     data_points_li = []
@@ -99,4 +101,5 @@ if __name__ == '__main__':
         ylabel='Diff transmitted bytes',
         title=graph_title,
         out_file_name=out_png_name,
+        x_axis_step=rtt_ns / 1e6 if rtt_ns is not None else None
     )

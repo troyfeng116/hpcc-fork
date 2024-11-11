@@ -96,25 +96,44 @@ def plot_data_points(times, data_points, xlabel, ylabel, title, out_file_name):
     plt.close()
 
 # Plot multiple data points over time in stacks
-def plot_stacked_data_points(data_points_li, xlabel, ylabel, title, out_file_name):
-    # type: (List[Tuple[str, List[int], List[int]]], str, str, str, str) -> None
+def plot_stacked_data_points(
+    data_points_li,
+    xlabel,
+    ylabel,
+    title,
+    out_file_name,
+    x_axis_step=None,
+):
+    # type: (List[Tuple[str, List[int], List[int]]], str, str, str, str, Optional[int]) -> None
     
     # (experiment_name, timestamps, data_points)
     data_points_li.sort(key=lambda x: x[0])
-    plt.figure(figsize=(10, 6))
+    fig = plt.figure(figsize=(10, 6))
+    ax1 = fig.subplots()
     
     cmap = plt.get_cmap('tab10')
     colors = cmap(np.linspace(0, 1, len(data_points_li)))
     for idx, (label, times, data_points) in enumerate(data_points_li):
-        plt.plot(times, data_points, color=colors[idx % len(colors)], label=label)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.title(title)
-    plt.grid(True)
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.tight_layout()
+        ax1.plot(times, data_points, color=colors[idx % len(colors)], label=label)
+    ax1.set_xlabel(xlabel)
+    ax1.set_ylabel(ylabel)
+    ax1.set_title(title, y=1.09)
+    ax1.grid(True)
+    ax1.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+
+    if x_axis_step is not None:
+        ax2 = ax1.twiny()
+        ax2.set_xlim(ax1.get_xlim())
+        min_x = min(min(times) for _, times, _ in data_points_li)
+        max_x = max(max(times) for _, times, _ in data_points_li)
+        rtt_tick_locs = np.arange(min_x, max_x, x_axis_step)
+        ax2.set_xticks(rtt_tick_locs)
+        ax2.set_xticklabels(range(len(rtt_tick_locs)))
+        ax2.set_xlabel('RTTs')
 
     # Save the plot as a PNG file
     print('saving graph to {}'.format(out_file_name))
-    plt.savefig(out_file_name)
+    
+    fig.tight_layout()
+    fig.savefig(out_file_name)
     plt.close()

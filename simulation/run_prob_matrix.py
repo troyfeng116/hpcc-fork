@@ -3,7 +3,7 @@ import os
 import subprocess
 import sys
 
-from typing import List
+from typing import List, Optional
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -59,15 +59,17 @@ def run_hpcc_simulation(misrep_file_name, flow, topo):
     except subprocess.CalledProcessError as e:
         print("Error:", e)
 
-def run_stacked_graph_visualizations(node_num, flow, topo, misrep_file_names, out_label):
-    # type: (int, str, str, List[str], str) -> None
+def run_stacked_graph_visualizations(node_num, flow, topo, misrep_file_names, out_label, rtt_ns=None):
+    # type: (int, str, str, List[str], str, Optional[int]) -> None
 
     # python stacked_tx_bytes_graph.py \
     # --node=2 \
     # --misrep_profiles=node_2_triple,node_2_zero,node_2_zero_p50,node_2_add \
     # --flow=mini_flow \
     # --topo=mini_topology \
-    # --cc_algo=hp95ai50
+    # --cc_algo=hp95ai50 \
+    # --rtt_ns=8320 \
+    # --label=zero_p_step5
     for py_script in [STACKED_GRAPH_PY_SCRIPT, STACKED_DIFF_GRAPH_PY_SCRIPT]:
         misrep_files_str = ','.join(misrep_file_names)
         command = [
@@ -79,6 +81,8 @@ def run_stacked_graph_visualizations(node_num, flow, topo, misrep_file_names, ou
             '--misrep_profiles', misrep_files_str,
             '--out_label', out_label,
         ]
+        if rtt_ns is not None:
+            command.extend(['--rtt_ns', str(rtt_ns)])
 
         try:
             # Run command and capture output
@@ -94,6 +98,7 @@ if __name__ == '__main__':
     parser.add_argument('--topo', dest='topo', action='store', default='mini_topology', help="the name of the topology file")
     parser.add_argument('--behavior', dest='behavior', action='store', required=True, help="misreporting behavior (TRIPLE, ADD, ZERO, etc.)")
     parser.add_argument('--step', dest='step', action='store', type=int, default=50, help="the probability step size")
+    parser.add_argument('--rtt_ns', dest='rtt_ns', action='store', type=int, default=None, help="RTT time (ns) for x-axis labels")
     parser.add_argument('--out_label', dest='out_label', action='store', required=True, help="label for output PNG file")
     parser.add_argument('--should_skip_sims', dest='should_skip_sims', action='store_true', help="specify to skip sims and only generate graphs")
     args = parser.parse_args()
@@ -105,6 +110,7 @@ if __name__ == '__main__':
     assert behavior_config in VALID_BEHAVIORS
     behavior_label = behavior_config.lower()
     step = args.step
+    rtt_ns = args.rtt_ns
     out_label = args.out_label
     should_skip_sims = args.should_skip_sims
     
@@ -135,4 +141,5 @@ if __name__ == '__main__':
         topo=topo,
         misrep_file_names=misrep_files,
         out_label=out_label,
+        rtt_ns=rtt_ns,
     )
