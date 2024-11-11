@@ -105,7 +105,8 @@ def plot_stacked_data_points(data_points_li, xlabel, ylabel, title, out_file_nam
     plt.ylabel(ylabel)
     plt.title(title)
     plt.grid(True)
-    plt.legend()
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
 
     # Save the plot as a PNG file
     print('saving graph to {}'.format(out_file_name))

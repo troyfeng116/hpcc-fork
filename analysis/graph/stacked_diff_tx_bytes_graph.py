@@ -1,4 +1,6 @@
 import argparse
+import bisect
+from typing import List
 
 from graph_helpers import (
     get_file_suffix,
@@ -8,6 +10,24 @@ from graph_helpers import (
     plot_stacked_data_points,
     process_node_state_trace_file,
 )
+
+# linearly interpolate between two baseline points
+def get_baseline_interpolation(t, baseline_times, baseline_tx_bytes):
+    # type: (int, List[int], List[int]) -> float
+    if t in baseline_times:
+        idx = baseline_times.index(t)
+        return baseline_tx_bytes[idx]
+
+    idx = bisect.bisect_left(baseline_times, t)
+    # range endpoints
+    if idx == 0:
+        return baseline_tx_bytes[0]
+    if idx == len(baseline_times):
+        return baseline_tx_bytes[-1]
+
+    t1, t2 = baseline_times[idx - 1], baseline_times[idx]
+    tx1, tx2 = baseline_tx_bytes[idx - 1], baseline_tx_bytes[idx]
+    return tx1 + (t - t1) * (tx2 - tx1) / (t2 - t1)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='graph output bytes')
@@ -41,21 +61,22 @@ if __name__ == '__main__':
         times_ms = [t / 1e6 for t in times]
         data_points_li.append((misrep, times_ms, tx_bytes))
 
-    # get baseline for diffs
+    # Get baseline for diffs
     baseline_file_suffix = get_file_suffix(topo=topo, flow=flow, cc_algo=cc_algo, misrep='none')
     baseline_trace_file = get_mix_trace_filename(trace_name='node_trace', file_suffix=baseline_file_suffix)
     baseline_times, baseline_tx_bytes = process_node_state_trace_file(file_name=baseline_trace_file, node_num=node_num)
     baseline_times_ms = [t / 1e6 for t in baseline_times]
     data_points_li.append(('none', baseline_times_ms, baseline_tx_bytes))
-    baseline_ts_map = {t:tx for t, tx in zip(baseline_times_ms, baseline_tx_bytes)}
 
     diff_points_li = []
     for misrep, times_ms, tx_bytes in data_points_li:
         truncated_times, diff_points = [], []
         for t, tx in zip(times_ms, tx_bytes):
-            if t in baseline_ts_map:
-                truncated_times.append(t)
-                diff_points.append(tx - baseline_ts_map[t])
+            baseline_tx = get_baseline_interpolation(t, baseline_times_ms, baseline_tx_bytes)
+            truncated_times.append(t)
+            diff_points.append(tx - baseline_tx)
+
+        print(misrep + " -> " + str(len(diff_points)))
         diff_points_li.append((misrep, truncated_times, diff_points))
 
     stacked_misrep_tok = 'various'
