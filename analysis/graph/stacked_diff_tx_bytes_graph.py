@@ -1,8 +1,7 @@
 import argparse
-import bisect
-from typing import List
 
 from graph_helpers import (
+    get_baseline_interpolation,
     get_file_suffix,
     get_graph_title,
     get_out_png_filename,
@@ -10,24 +9,6 @@ from graph_helpers import (
     plot_stacked_data_points,
     process_node_state_trace_file,
 )
-
-# linearly interpolate between two baseline points
-def get_baseline_interpolation(t, baseline_times, baseline_tx_bytes):
-    # type: (int, List[int], List[int]) -> float
-    if t in baseline_times:
-        idx = baseline_times.index(t)
-        return baseline_tx_bytes[idx]
-
-    idx = bisect.bisect_left(baseline_times, t)
-    # range endpoints
-    if idx == 0:
-        return baseline_tx_bytes[0]
-    if idx == len(baseline_times):
-        return baseline_tx_bytes[-1]
-
-    t1, t2 = baseline_times[idx - 1], baseline_times[idx]
-    tx1, tx2 = baseline_tx_bytes[idx - 1], baseline_tx_bytes[idx]
-    return tx1 + (t - t1) * (tx2 - tx1) / (t2 - t1)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='graph output bytes')

@@ -1,42 +1,13 @@
 import argparse
-from typing import List, Tuple
 
 from graph_helpers import (
     get_file_suffix,
     get_graph_title,
     get_out_png_filename,
+    get_qlen_trace_filename,
     plot_data_points,
+    process_qlen_trace_file,
 )
-
-def process_qlen_trace_file(file_name, node_num):
-    # type: (str, int) -> Tuple[List[str], List[str]]
-    times = []
-    queue_lengths = []
-    ts_to_qlen_map = {}
-
-    with open(file_name, 'r') as file:
-        # 2000055540 n:338 4:3 100608 Enqu ecn:0 0b00d101 0b012301 10000 100 U 161000 0 3 1048(1000)
-        for line in file:
-            parts = line.split()
-            if len(parts) < 11:
-                print('skipping {}'.format(line))
-                continue
-            time_ns = int(parts[0]) # time ns
-            node = int(parts[1].split(':')[1]) # node number
-            event_type = parts[4]
-            queue_length = int(parts[3]) # queue length in bytes
-            packet_type = parts[10] # 'U' for data packet
-
-            # Filter by the given node number
-            if event_type == "Dequ" and packet_type == "U" and node == node_num:
-                if time_ns not in ts_to_qlen_map:
-                    ts_to_qlen_map[time_ns] = 0
-                ts_to_qlen_map[time_ns] += queue_length
-
-    for k, v in sorted(ts_to_qlen_map.items(), lambda a, b : a[0] - b[0]):
-        times.append(k)
-        queue_lengths.append(v)
-    return times, queue_lengths
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='graph queue length')
@@ -56,7 +27,7 @@ if __name__ == '__main__':
 
     file_suffix = get_file_suffix(topo=topo, flow=flow, cc_algo=cc_algo, misrep=misrep)
     # qLen traces are read separately from `simulation/mix` by `trace_reader`
-    trace_file = 'qlen_traces/qlen_{file_suffix}.txt'.format(file_suffix=file_suffix)
+    trace_file = get_qlen_trace_filename(file_suffix=file_suffix)
 
     times, queue_lengths = process_qlen_trace_file(file_name=trace_file, node_num=node_num)
     times_ms = [t / 1e6 for t in times]

@@ -1,3 +1,4 @@
+import bisect
 import os
 from typing import List, Optional, Tuple
 import matplotlib
@@ -27,6 +28,24 @@ def get_graph_title(metric_name, node_num, cc_algo, misrep, hop_node_num=None):
         cc_algo=cc_algo,
         misrep=misrep,
     )
+    
+# linearly interpolate between two baseline points
+def get_baseline_interpolation(t, baseline_times, baseline_data_points):
+    # type: (int, List[int], List[int]) -> float
+    if t in baseline_times:
+        idx = baseline_times.index(t)
+        return baseline_data_points[idx]
+
+    idx = bisect.bisect_left(baseline_times, t)
+    # range endpoints
+    if idx == 0:
+        return baseline_data_points[0]
+    if idx == len(baseline_times):
+        return baseline_data_points[-1]
+
+    t1, t2 = baseline_times[idx - 1], baseline_times[idx]
+    tx1, tx2 = baseline_data_points[idx - 1], baseline_data_points[idx]
+    return tx1 + (t - t1) * (tx2 - tx1) / (t2 - t1)
 
 # path to simulation output trace file in `simulation/mix/`
 def get_mix_trace_filename(trace_name, file_suffix, file_type='txt'):
@@ -66,6 +85,41 @@ def process_node_state_trace_file(file_name, node_num):
         times.append(k)
         tx_bytes_li.append(v)
     return times, tx_bytes_li
+
+def get_qlen_trace_filename(file_suffix):
+    # type: (str) -> str
+    return script_dir + '/qlen_traces/qlen_{file_suffix}.txt'.format(file_suffix=file_suffix)
+
+# process qLen trace file
+def process_qlen_trace_file(file_name, node_num):
+    # type: (str, int) -> Tuple[List[str], List[str]]
+    times = []
+    queue_lengths = []
+    ts_to_qlen_map = {}
+
+    with open(file_name, 'r') as file:
+        # 2000055540 n:338 4:3 100608 Enqu ecn:0 0b00d101 0b012301 10000 100 U 161000 0 3 1048(1000)
+        for line in file:
+            parts = line.split()
+            if len(parts) < 11:
+                print('skipping {}'.format(line))
+                continue
+            time_ns = int(parts[0]) # time ns
+            node = int(parts[1].split(':')[1]) # node number
+            event_type = parts[4]
+            queue_length = int(parts[3]) # queue length in bytes
+            packet_type = parts[10] # 'U' for data packet
+
+            # Filter by the given node number
+            if event_type == "Dequ" and packet_type == "U" and node == node_num:
+                if time_ns not in ts_to_qlen_map:
+                    ts_to_qlen_map[time_ns] = 0
+                ts_to_qlen_map[time_ns] += queue_length
+
+    for k, v in sorted(ts_to_qlen_map.items(), lambda a, b : a[0] - b[0]):
+        times.append(k)
+        queue_lengths.append(v)
+    return times, queue_lengths
 
 # get path to output PNG file name
 def get_out_png_filename(graph_metric, file_suffix, node_num, hop_node_num=None, out_label=None):

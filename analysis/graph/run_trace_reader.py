@@ -1,13 +1,16 @@
 import argparse
+import os
 import subprocess
 
 from graph_helpers import get_file_suffix, get_mix_trace_filename
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
 def run_trace_reader(file_name, file_suffix):
     # (str, str) -> None
-    output_file = 'qlen_traces/qlen_{file_suffix}.txt'.format(file_suffix=file_suffix)
+    output_file = script_dir + '/qlen_traces/qlen_{file_suffix}.txt'.format(file_suffix=file_suffix)
 
-    command = '../trace_reader {file_name}'.format(file_name=file_name)
+    command = script_dir + '/../trace_reader {file_name}'.format(file_name=file_name)
 
     with open(output_file, 'w') as output:
         # redirect output to file
