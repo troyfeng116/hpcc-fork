@@ -4,6 +4,7 @@
 **.pyc
 simulation/build
 simulation/mix
+analysis/graph/qlen_traces
 
 .lock-waf_linux2_build
 **.out

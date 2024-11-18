@@ -73,7 +73,7 @@ if __name__ == '__main__':
             tx_times, tx_bytes_li = process_node_state_trace_file(file_name=node_trace_file, node_num=node_num)
             tx_bytes_at_t = get_baseline_interpolation(t=ts_ns, baseline_times=tx_times, baseline_data_points=tx_bytes_li)
 
-            expected_qlens_li.append(expec_qlen_at_t)
+            expected_qlens_li.append(prob)
             diff_tx_bytes_li.append(tx_bytes_at_t - baseline_tx_bytes_at_t)
 
         # print('ts_ns=' + str(ts_ns) + ' -> expected_qlens_li ' + str(expected_qlens_li) + ', diff_tx_bytes_li ' + str(diff_tx_bytes_li))
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     )
     plot_stacked_data_points(
         data_points_li=data_points_li,
-        xlabel='Expected qLen (bytes)',
+        xlabel='Probability of misreport (%)',
         ylabel='Diff txBytes (bytes)',
         title=graph_title,
         out_file_name=out_png_name,

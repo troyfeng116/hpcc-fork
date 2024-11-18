@@ -2,6 +2,7 @@ import argparse
 import os
 import subprocess
 import sys
+from tqdm import tqdm
 
 from typing import List, Optional
 
@@ -51,11 +52,11 @@ def run_hpcc_simulation(misrep_file_name, flow, topo):
 
     try:
         # Run command and capture output
-        output = subprocess.check_output(command)
+        output = subprocess.check_output(command, stderr=subprocess.STDOUT)
         assert 'Running Simulation.' in output
         assert 'setting node 2 reporting function' in output
         assert 'with prob' in output
-        print("simulation complete for " + misrep_file_name)
+        # print("simulation complete for " + misrep_file_name)
     except subprocess.CalledProcessError as e:
         print("Error:", e)
 
@@ -86,7 +87,7 @@ def run_stacked_graph_visualizations(node_num, flow, topo, misrep_file_names, ou
 
         try:
             # Run command and capture output
-            output = subprocess.check_output(command)
+            output = subprocess.check_output(command, stderr=subprocess.STDOUT)
             print("Output:\n" + output)
         except subprocess.CalledProcessError as e:
             print("Error:", e)
@@ -116,7 +117,7 @@ if __name__ == '__main__':
     
     misrep_files = []
 
-    for p in range(step, 101, step):
+    for p in tqdm(range(step, 101, step)):
         misrep_file_name = 'node_{node_num}_{behavior_label}_p{prob}'.format(
             node_num=node_num, behavior_label=behavior_label, prob=p
         )
