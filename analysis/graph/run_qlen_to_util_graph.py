@@ -10,6 +10,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 
 TRACE_READER_SCRIPT = script_dir + '/run_trace_reader.py'
 QLEN_TO_DIFF_TX_BYTES_GRAPH_SCRIPT = script_dir + '/qlen_to_diff_tx_bytes_graph.py'
+QLEN_TIME_UTIL_SURFACE_SCRIPT = script_dir + '/qlen_time_diff_util_surface.py'
 
 HPCC_ALGO = 'hp95ai50'
 
@@ -73,6 +74,36 @@ def run_qlen_to_diff_tx_bytes_graph_script(node_num, flow, topo, misrep_file_nam
         except subprocess.CalledProcessError as e:
             print("Error:", e)
 
+def run_surface_script(node_num, flow, topo, misrep_file_names, ts_step_ns, out_label):
+    # type: (int, str, str, List[str], int, str) -> None
+
+    # python qlen_time_diff_util_surface.py \
+    # --node=2 \
+    # --flow=mini_flow \
+    # --topo=mini_topology \
+    # --misrep_profiles=node_2_zero_p20,node_2_zero_p40,node_2_zero_p60,node_2_zero_p80,node_2_zero_p100 \
+    # --ts_step_ns=5000 \
+    # --out_label=surface_test_p20
+    for py_script in [QLEN_TIME_UTIL_SURFACE_SCRIPT]:
+        misrep_files_str = ','.join(misrep_file_names)
+        command = [
+            'python', py_script,
+            '--node', str(node_num),
+            '--flow', flow,
+            '--topo', topo,
+            '--cc_algo', HPCC_ALGO,
+            '--misrep_profiles', misrep_files_str,
+            '--ts_step_ns', str(ts_step_ns),
+            '--out_label', out_label,
+        ]
+
+        try:
+            # Run command and capture output
+            output = subprocess.check_output(command)
+            print("Output:\n" + output)
+        except subprocess.CalledProcessError as e:
+            print("Error:", e)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='run probability matrix sim')
     parser.add_argument('--node', dest='node', action='store', type=int, required=True, help="node id")
@@ -82,6 +113,7 @@ if __name__ == '__main__':
     parser.add_argument('--behavior', dest='behavior', action='store', required=True, help="misreporting behavior (TRIPLE, ADD, ZERO, etc.)")
     parser.add_argument('--step', dest='step', action='store', type=int, default=50, help="the probability step size")
     parser.add_argument('--should_skip_trace_reader', dest='should_skip_trace_reader', action='store_true', help="specify to skip trace reader and only generate graphs")
+    parser.add_argument('--should_graph_surface', dest='should_graph_surface', action='store_true', help="specify to graph surface curve of prob/time/utility")
     args = parser.parse_args()
 
     node_num = args.node
@@ -93,6 +125,7 @@ if __name__ == '__main__':
     behavior_label = behavior_config.lower()
     step = args.step
     should_skip_trace_reader = args.should_skip_trace_reader
+    should_graph_surface = args.should_graph_surface
     
     misrep_files = []
 
@@ -110,11 +143,20 @@ if __name__ == '__main__':
     out_label = '{behavior_config}_pstep_{step}_tstep_{ts_step_ns}'.format(
         behavior_config=behavior_config, step=step, ts_step_ns=ts_step_ns,
     )
-    run_qlen_to_diff_tx_bytes_graph_script(
-        node_num=node_num,
-        flow=flow,
-        topo=topo,
-        misrep_file_names=misrep_files,
-        ts_step_ns=ts_step_ns,
-        out_label=out_label,
-    )
+    # run_qlen_to_diff_tx_bytes_graph_script(
+    #     node_num=node_num,
+    #     flow=flow,
+    #     topo=topo,
+    #     misrep_file_names=misrep_files,
+    #     ts_step_ns=ts_step_ns,
+    #     out_label=out_label,
+    # )
+    if should_graph_surface:
+        run_surface_script(
+            node_num=node_num,
+            flow=flow,
+            topo=topo,
+            misrep_file_names=misrep_files,
+            ts_step_ns=ts_step_ns,
+            out_label=out_label,
+        )

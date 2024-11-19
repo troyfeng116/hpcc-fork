@@ -8,7 +8,7 @@ from graph_helpers import (
     get_out_png_filename,
     get_mix_trace_filename,
     get_qlen_trace_filename,
-    plot_stacked_data_points,
+    plot_surface_curve,
     process_node_state_trace_file,
     process_qlen_trace_file,
 )
@@ -51,11 +51,11 @@ if __name__ == '__main__':
     # avoid too many curves
     # assert (max_ts - min_ts) / ts_step_ns < 30
     
-    # [label, times, tx_bytes]
-    data_points_li = []
+    # prob, time, diff_bytes
+    probs, timestamps, diff_bytes_li = [], [], []
     for ts_ns in range(min_ts, max_ts + 1, ts_step_ns):
         baseline_tx_bytes_at_t = get_baseline_interpolation(t=ts_ns, baseline_times=baseline_tx_times, baseline_data_points=baseline_tx_bytes)
-        
+
         expected_qlens_li, diff_tx_bytes_li = [], []
 
         for misrep in misrep_profiles:
@@ -73,28 +73,34 @@ if __name__ == '__main__':
             tx_times, tx_bytes_li = process_node_state_trace_file(file_name=node_trace_file, node_num=node_num)
             tx_bytes_at_t = get_baseline_interpolation(t=ts_ns, baseline_times=tx_times, baseline_data_points=tx_bytes_li)
 
-            expected_qlens_li.append(prob)
-            diff_tx_bytes_li.append(tx_bytes_at_t - baseline_tx_bytes_at_t)
+            probs.append(prob)
+            timestamps.append(ts_ns / 1e6)
+            diff_bytes_li.append(tx_bytes_at_t - baseline_tx_bytes_at_t)
 
         # print('ts_ns=' + str(ts_ns) + ' -> expected_qlens_li ' + str(expected_qlens_li) + ', diff_tx_bytes_li ' + str(diff_tx_bytes_li))
-        sorted_points = sorted(zip(expected_qlens_li, diff_tx_bytes_li), key=lambda x: x[0])
-        expected_qlens_li, diff_tx_bytes_li = zip(*sorted_points)
-        data_points_li.append(('t=' + str(ts_ns / 1e6) + 'ms', expected_qlens_li, diff_tx_bytes_li))
+        # sorted_points = sorted(zip(expected_qlens_li, diff_tx_bytes_li), key=lambda x: x[0])
+        # expected_qlens_li, diff_tx_bytes_li = zip(*sorted_points)
+        # data_points_li.append(('t=' + str(ts_ns / 1e6) + 'ms', expected_qlens_li, diff_tx_bytes_li))
 
-    graph_title = 'Expected reported qLen vs. diff tx_bytes (utility), node {node_num}, misrep_profiles {misrep_profiles}'.format(
+    graph_title = 'Prob/time/util surface: node {node_num}, misrep_profiles {misrep_profiles}'.format(
         node_num=node_num, misrep_profiles=','.join(list(misrep_profiles)[:3]) + '...'
     )
     png_suffix = get_file_suffix(topo=topo, flow=flow, cc_algo=cc_algo, misrep='')
     out_png_name = get_out_png_filename(
-        graph_metric='expected_qlen_v_util',
+        graph_metric='prob_time_util_surface',
         file_suffix=png_suffix,
         node_num=node_num,
         out_label=out_label,
     )
-    plot_stacked_data_points(
-        data_points_li=data_points_li,
-        xlabel='Probability of misreport (%)',
-        ylabel='Diff txBytes (bytes)',
+    plot_surface_curve(
+        X=timestamps,
+        Y=probs,
+        Z=diff_bytes_li,
+        xlabel="Timestamp (ms)",
+        ylabel="Probability (%)",
+        zlabel="Diff tx_bytes (B)",
+        # xlabel='Probability of misreport (%)',
+        # ylabel='Diff txBytes (bytes)',
         title=graph_title,
         out_file_name=out_png_name,
     )

@@ -4,6 +4,8 @@ from typing import List, Optional, Tuple
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib import cm
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -188,6 +190,42 @@ def plot_stacked_data_points(
     # Save the plot as a PNG file
     print('saving graph to {}'.format(out_file_name))
     
+    fig.tight_layout()
+    fig.savefig(out_file_name)
+    plt.close()
+
+# Plot multiple data points over time in stacks
+def plot_surface_curve(
+    X,
+    Y,
+    Z,
+    xlabel,
+    ylabel,
+    zlabel,
+    title,
+    out_file_name,
+    x_axis_step=None,
+):
+    # type: (List[int], List[int], List[int], str, str, str, str, str, Optional[int]) -> None
+    
+    # (experiment_name, x, y, z)
+    # fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+
+    # X, Y = np.meshgrid(X, Y)
+    # Z = np.array(Z).reshape(X.shape)
+    surf = ax.plot_trisurf(X, Y, Z, cmap=cm.coolwarm,
+                       linewidth=0, antialiased=False)
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+    
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_zlabel(zlabel)
+
+    # Save the plot as a PNG file
+    print('saving graph to {}'.format(out_file_name))
+
     fig.tight_layout()
     fig.savefig(out_file_name)
     plt.close()
