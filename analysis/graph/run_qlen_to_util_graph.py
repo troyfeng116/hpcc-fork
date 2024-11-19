@@ -143,14 +143,14 @@ if __name__ == '__main__':
     out_label = '{behavior_config}_pstep_{step}_tstep_{ts_step_ns}'.format(
         behavior_config=behavior_config, step=step, ts_step_ns=ts_step_ns,
     )
-    # run_qlen_to_diff_tx_bytes_graph_script(
-    #     node_num=node_num,
-    #     flow=flow,
-    #     topo=topo,
-    #     misrep_file_names=misrep_files,
-    #     ts_step_ns=ts_step_ns,
-    #     out_label=out_label,
-    # )
+    run_qlen_to_diff_tx_bytes_graph_script(
+        node_num=node_num,
+        flow=flow,
+        topo=topo,
+        misrep_file_names=misrep_files,
+        ts_step_ns=ts_step_ns,
+        out_label=out_label,
+    )
     if should_graph_surface:
         run_surface_script(
             node_num=node_num,
