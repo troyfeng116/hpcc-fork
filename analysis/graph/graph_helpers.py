@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+import textwrap
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -222,10 +223,14 @@ def plot_surface_curve(
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_zlabel(zlabel)
+    ax_title = ax.set_title("\n".join(textwrap.wrap(title, 60)))
 
     # Save the plot as a PNG file
     print('saving graph to {}'.format(out_file_name))
 
     fig.tight_layout()
+    ax_title.set_y(1.05)
+    fig.subplots_adjust(top=0.8)
+
     fig.savefig(out_file_name)
     plt.close()
