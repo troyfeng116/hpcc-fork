@@ -35,11 +35,10 @@ def get_graph_title(metric_name, node_num, cc_algo, misrep, hop_node_num=None):
 # linearly interpolate between two baseline points
 def get_baseline_interpolation(t, baseline_times, baseline_data_points):
     # type: (int, List[int], List[int]) -> float
-    if t in baseline_times:
-        idx = baseline_times.index(t)
-        return baseline_data_points[idx]
 
     idx = bisect.bisect_left(baseline_times, t)
+    if 0 <= idx < len(baseline_times) and baseline_times[idx] == t:
+        return baseline_data_points[idx]
     # range endpoints
     if idx == 0:
         return baseline_data_points[0]
@@ -140,6 +139,7 @@ def plot_data_points(times, data_points, xlabel, ylabel, title, out_file_name):
     # type: (List[int], List[int], str, str, str, str) -> None
     plt.figure(figsize=(10, 6))
     plt.plot(times, data_points, color='blue')
+    plt.axhline(y=100e9/50e6, linestyle=':', color='orange')
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
@@ -222,6 +222,7 @@ def plot_surface_curve(
     
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+    ax.invert_xaxis()
     ax.set_zlabel(zlabel)
     ax_title = ax.set_title("\n".join(textwrap.wrap(title, 60)))
 

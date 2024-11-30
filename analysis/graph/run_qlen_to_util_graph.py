@@ -114,6 +114,7 @@ if __name__ == '__main__':
     parser.add_argument('--behavior', dest='behavior', action='store', required=True, help="misreporting behavior (TRIPLE, ADD, ZERO, etc.)")
     parser.add_argument('--step', dest='step', action='store', type=int, default=50, help="the probability step size")
     parser.add_argument('--should_skip_trace_reader', dest='should_skip_trace_reader', action='store_true', help="specify to skip trace reader and only generate graphs")
+    parser.add_argument('--should_graph_qlen_to_util', dest='should_graph_qlen_to_util', action='store_true', help="specify to graph misrep prob vs utility graph")
     parser.add_argument('--should_graph_surface', dest='should_graph_surface', action='store_true', help="specify to graph surface curve of prob/time/utility")
     args = parser.parse_args()
 
@@ -126,6 +127,7 @@ if __name__ == '__main__':
     behavior_label = behavior_config.lower()
     step = args.step
     should_skip_trace_reader = args.should_skip_trace_reader
+    should_graph_qlen_to_util = args.should_graph_qlen_to_util
     should_graph_surface = args.should_graph_surface
     
     misrep_files = []
@@ -144,15 +146,20 @@ if __name__ == '__main__':
     out_label = '{behavior_config}_pstep_{step}_tstep_{ts_step_ns}'.format(
         behavior_config=behavior_config, step=step, ts_step_ns=ts_step_ns,
     )
-    run_qlen_to_diff_tx_bytes_graph_script(
-        node_num=node_num,
-        flow=flow,
-        topo=topo,
-        misrep_file_names=misrep_files,
-        ts_step_ns=ts_step_ns,
-        out_label=out_label,
-    )
+    if should_graph_qlen_to_util:
+        print("Graphing qLen vs diff_txBytes")
+        print("ts_step_ns " + str(ts_step_ns) + " len(misrep_files)=" + str(len(misrep_files)))
+        run_qlen_to_diff_tx_bytes_graph_script(
+            node_num=node_num,
+            flow=flow,
+            topo=topo,
+            misrep_file_names=misrep_files,
+            ts_step_ns=ts_step_ns,
+            out_label=out_label,
+        )
     if should_graph_surface:
+        print("Graphing surface curve")
+        print("ts_step_ns " + str(ts_step_ns) + " len(misrep_files)=" + str(len(misrep_files)))
         run_surface_script(
             node_num=node_num,
             flow=flow,
