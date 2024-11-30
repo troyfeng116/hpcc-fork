@@ -139,7 +139,6 @@ def plot_data_points(times, data_points, xlabel, ylabel, title, out_file_name):
     # type: (List[int], List[int], str, str, str, str) -> None
     plt.figure(figsize=(10, 6))
     plt.plot(times, data_points, color='blue')
-    plt.axhline(y=100e9/50e6, linestyle=':', color='orange')
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
@@ -222,7 +221,7 @@ def plot_surface_curve(
     
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-    ax.invert_xaxis()
+    # ax.invert_xaxis()
     ax.set_zlabel(zlabel)
     ax_title = ax.set_title("\n".join(textwrap.wrap(title, 60)))
 
@@ -234,4 +233,20 @@ def plot_surface_curve(
     fig.subplots_adjust(top=0.8)
 
     fig.savefig(out_file_name)
+    plt.close()
+
+# Plot data points over time
+def plot_bar_chart(X, Y, xlabel, ylabel, title, out_file_name):
+    # type: (List[int], List[int], str, str, str, str) -> None
+    plt.figure(figsize=(10, 6))
+    plt.bar(X, Y, color='blue')
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+    # plt.legend()
+    # plt.show()
+
+    # Save the plot as a PNG file
+    print('saving graph to {}'.format(out_file_name))
+    plt.savefig(out_file_name)
     plt.close()

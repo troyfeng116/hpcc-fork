@@ -6,6 +6,8 @@ import sys
 from tqdm import tqdm
 from typing import List
 
+from consts import VALID_BEHAVIORS
+
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 TRACE_READER_SCRIPT = script_dir + '/run_trace_reader.py'
@@ -13,13 +15,6 @@ QLEN_TO_DIFF_TX_BYTES_GRAPH_SCRIPT = script_dir + '/qlen_to_diff_tx_bytes_graph.
 QLEN_TIME_UTIL_SURFACE_SCRIPT = script_dir + '/qlen_time_diff_util_surface.py'
 
 HPCC_ALGO = 'hp95ai50'
-
-VALID_BEHAVIORS = {
-    'ZERO',
-    'TRIPLE',
-    'ADD',
-    'FULL',
-}
 
 def run_trace_reader_script(misrep_file_name, flow, topo):
     # type: (str, str, str) -> None
