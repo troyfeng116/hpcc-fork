@@ -72,6 +72,7 @@ if __name__ == "__main__":
         graph_metric='fct_bar',
         file_suffix=get_file_suffix(topo=topo, flow=flow, cc_algo=cc_algo, misrep=''),
         node_num=node_num,
+        out_label="{behavior}_p_step{step}".format(behavior=behavior, step=step)
     )
     graph_title = "Flow completion times: misrep {behavior}, step size {step}".format(
         behavior=behavior, step=step)
