@@ -18,6 +18,7 @@ VALID_BEHAVIORS = {
     'ZERO',
     'TRIPLE',
     'ADD',
+    'FULL',
 }
 
 def run_trace_reader_script(misrep_file_name, flow, topo):

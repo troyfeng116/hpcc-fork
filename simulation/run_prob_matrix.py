@@ -18,6 +18,7 @@ VALID_BEHAVIORS = {
     'ZERO',
     'TRIPLE',
     'ADD',
+    'FULL',
 }
 
 def generate_misrep_file(

@@ -373,6 +373,11 @@ uint64_t zero_qlen_mapping(uint64_t actual_qlen){
 	return 0;
 }
 
+uint64_t full_qlen_mapping(uint64_t actual_qlen){
+	// printf("[zero_qlen_mapping] %lu\n", actual_qlen);
+	return 3000000000;
+}
+
 int main(int argc, char *argv[])
 {
 	clock_t begint, endt;
@@ -794,6 +799,7 @@ int main(int argc, char *argv[])
 		{"TRIPLE", &triple_qlen_mapping},
 		{"ADD", &additive_qlen_mapping},
 		{"ZERO", &zero_qlen_mapping},
+		{"FULL", &full_qlen_mapping},
 	};
 	
 

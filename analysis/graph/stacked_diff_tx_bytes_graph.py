@@ -51,10 +51,13 @@ if __name__ == '__main__':
     baseline_times_ms = [t / 1e6 for t in baseline_times]
     data_points_li.append(('none', baseline_times_ms, baseline_tx_bytes))
 
+    max_baseline_ts = max(baseline_times_ms)
     diff_points_li = []
     for misrep, times_ms, tx_bytes in data_points_li:
         truncated_times, diff_points = [], []
         for t, tx in zip(times_ms, tx_bytes):
+            if t > max_baseline_ts:
+                break
             baseline_tx = get_baseline_interpolation(t, baseline_times_ms, baseline_tx_bytes)
             truncated_times.append(t)
             diff_points.append(tx - baseline_tx)
