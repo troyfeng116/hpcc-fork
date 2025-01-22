@@ -20,3 +20,28 @@ For technical questions, please create an issue in this repo, so other people ca
 You may also check the issue list first to see if people have already asked the questions you have :)
 
 For other questions, please contact Rui Miao (miao.rui@alibaba-inc.com).
+
+## Misreporting experiments (new contributions)
+
+Experiments are defined by `(topo, flow, cc_algo, misrep_profile)` tuples.
+
+### Run experiment
+To run an experiment with a misreporting profile:
+```bash
+python run.py --cc hp --trace mini_flow --bw 100 --topo mini_topology --hpai 50 --enable_tr 1 --utgt 95 --misrep node_2_zero
+```
+The misreporting profiles are specified in `simulation/mix/node_2_zero`, given as `(node_id, misreporting_behavior)` pairs. See `simulation/scratch/third.cc` (in particular `reporting_fn_map`) to view/modify/add supported misreporting behaviors.
+
+### [if needed] Run trace readers
+Experiments generate some trace files (ex. queue lengths) that must be parsed first. We wrote a Python utility to run `trace_reader` in `analysis:
+```bash
+$ python run_trace_reader.py --flow=mini_flow --topo=mini_topology --cc_algo=hp95ai50 --misrep=node_2_zero
+```
+
+### Run graph scripts
+Finally, scripts in `analysis/graph` read trace files per experiment and plot results.
+```bash
+$ python qlen_graph.py --node=2 --flow=mini_flow --topo=mini_topology --bw=100 --cc_algo=hp95ai50 --misrep=node_2_zero
+```
+
+Source code for generating more complex graphs (stacked graphs, surface curves, etc.) can all be found in `analysis/graph`.
