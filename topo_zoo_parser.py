@@ -76,7 +76,7 @@ def main():
         edges=edges,
         topo_file_name='simulation/mix/{out_file}.txt'.format(out_file=OUT_FILE_NAME)
     )
-    print('{N} nodes, {M} edges', N=N, M=len(edges))
+    print('{N} nodes, {M} edges'.format(N=N, M=len(edges)))
 
     return 0
 
