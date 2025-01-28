@@ -31,7 +31,8 @@ def write_graph_to_topo_file(N, edges, topo_file_name, bw_gbps=100):
     bw_str = '{bw_gbps}Gbps'.format(bw_gbps=bw_gbps)
     with open(topo_file_name, 'w') as out_file:
         # nodes+switches, switches, links
-        out_file.write('{N} {N} {total_links}\n'.format(N=N, total_links=total_links))
+        out_file.write('{total_N} {N} {total_links}\n'.format(
+            total_N = N+N, N=N, total_links=total_links))
         # switch IDs
         switch_ids = [node_id + N for node_id in range(N)]
         out_file.write(' '.join(str(sid) for sid in switch_ids))
