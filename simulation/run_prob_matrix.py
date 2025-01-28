@@ -37,8 +37,8 @@ def generate_misrep_file(
         )
         f.write('1\n' + target_node_line)
 
-def run_hpcc_simulation(misrep_file_name, flow, topo):
-    # type: (str, str, str) -> None
+def run_hpcc_simulation(misrep_file_name, node_num, flow, topo):
+    # type: (str, int, str, str) -> None
     command = [
         'python', RUN_PY_SCRIPT,
         '--cc', 'hp',
@@ -55,7 +55,7 @@ def run_hpcc_simulation(misrep_file_name, flow, topo):
         # Run command and capture output
         output = subprocess.check_output(command, stderr=subprocess.STDOUT)
         assert 'Running Simulation.' in output
-        assert 'setting node 2 reporting function' in output
+        assert 'setting node {node_num} reporting function'.format(node_num=node_num) in output
         assert 'with prob' in output
         # print("simulation complete for " + misrep_file_name)
     except subprocess.CalledProcessError as e:
@@ -133,6 +133,7 @@ if __name__ == '__main__':
             )
             run_hpcc_simulation(
                 flow=flow,
+                node_num=node_num,
                 topo=topo,
                 misrep_file_name=misrep_file_name,
             )
