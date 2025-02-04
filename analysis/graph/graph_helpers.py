@@ -234,6 +234,54 @@ def plot_surface_curve(
 
     fig.savefig(out_file_name)
     plt.close()
+    
+# Plot multiple data points over time in stacks
+def plot_contour_curve(
+    X,
+    Y,
+    Z,
+    xlabel,
+    ylabel,
+    zlabel,
+    title,
+    out_file_name,
+    x_axis_step=None,
+):
+    # type: (List[int], List[int], List[int], str, str, str, str, str, Optional[int]) -> None
+    
+    # (experiment_name, x, y, z)
+    # fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+
+    # X, Y = np.meshgrid(X, Y)
+    # Z = np.array(Z).reshape(X.shape)
+    surf = ax.plot_trisurf(X, Y, Z, cmap=cm.coolwarm,
+                       linewidth=0, antialiased=False)
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+    
+    Z_grid = np.array(Z)
+    Z_grid = Z_grid.reshape((len(X), len(Y)))
+    cset = ax.contour(X, Y, Z_grid, levels=10, colors='black', offset=-1)
+    ax.clabel(cset, inline=1, fontsize=10)
+    # CS = ax.contour(X, Y, Z)
+    # ax.clabel(CS, inline=True, fontsize=10)
+    
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    # ax.invert_xaxis()
+    ax.set_zlabel(zlabel)
+    ax_title = ax.set_title("\n".join(textwrap.wrap(title, 60)))
+
+    # Save the plot as a PNG file
+    print('saving graph to {}'.format(out_file_name))
+
+    fig.tight_layout()
+    ax_title.set_y(1.05)
+    fig.subplots_adjust(top=0.8)
+
+    fig.savefig(out_file_name)
+    plt.close()
 
 # Plot data points over time
 def plot_bar_chart(X, Y, xlabel, ylabel, title, out_file_name):
@@ -250,3 +298,45 @@ def plot_bar_chart(X, Y, xlabel, ylabel, title, out_file_name):
     print('saving graph to {}'.format(out_file_name))
     plt.savefig(out_file_name)
     plt.close()
+
+
+# Plot data points in histogram
+def plot_histogram(data, xlabel, ylabel, title, out_file_name):
+    # type: (List[int], str, str, str, str) -> None
+
+    # Create the histogram
+    data = np.array(data)
+
+    print(min(data), max(data))
+    mean = np.mean(data)
+    stddev = np.std(data)
+    print("Mean:", mean)
+    print("Standard deviation:", stddev)
+
+    filtered_data = remove_outliers_iqr(data)
+    plt.hist(filtered_data, bins=100)
+
+    # Add a title and labels
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    print('saving graph to {}'.format(out_file_name))
+    plt.savefig(out_file_name)
+    plt.close()
+
+# sip, dip, sport, dport, start_time -> hash key
+def to_flow_key(sip, sport, dip, dport, start_time):
+    return "{sip}:{sport}${dip}:{dport}${start_time}".format(
+        sip=sip, sport=sport, dip=dip, dport=dport, start_time=start_time
+    )
+
+def remove_outliers_iqr(data):
+    """Removes outliers from a NumPy array using the IQR method."""
+
+    q1 = np.percentile(data, 25)
+    q3 = np.percentile(data, 75)
+    iqr = q3 - q1
+    lower_bound = q1 - 1.5 * iqr
+    upper_bound = q3 + 1.5 * iqr
+
+    return data[(data >= lower_bound) & (data <= upper_bound)]
