@@ -1,6 +1,6 @@
 import bisect
 import os
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -122,6 +122,59 @@ def process_qlen_trace_file(file_name, node_num):
         times.append(k)
         queue_lengths.append(v)
     return times, queue_lengths
+
+
+# process qLen trace file: extract map of {node_num : [flow tuples involved]}
+def process_qlen_trace_file_for_involved_nodes(file_name, node_num):
+    # type: (str, int) -> Dict[int, List[str]]
+    node_to_flows = {}
+
+    with open(file_name, 'r') as file:
+        # 2000055540 n:338 4:3 100608 Enqu ecn:0 0b00d101 0b012301 10000 100 U 161000 0 3 1048(1000)
+        for line in file:
+            parts = line.split()
+            if len(parts) < 11:
+                print('skipping {}'.format(line))
+                continue
+            node = int(parts[1].split(':')[1]) # node number
+            sip, dip = parts[6], parts[7]
+            sport, dport = parts[7], parts[8]
+            flow_key = to_flow_key(sip=sip, sport=sport, dip=dip, dport=dport, start_time=-1)
+            
+            if node not in node_to_flows:
+                node_to_flows[node] = []
+            node_to_flows.append(flow_key)
+    return node_to_flows
+
+def process_fct_trace(fct_trace_path):
+    # type: (str) -> Dict[str, Tuple[int, int, int, int]]
+    """
+    Reads FCT trace file and extracts all FCTs (in ns).
+    Returned as {flow_tuple : (start_time, fct, standalone_fct, sz)} map.
+    """
+    fcts_by_flow = {}
+    with open(fct_trace_path, 'r') as f:
+        # sip, dip, sport, dport, size (B), start_time, fct (ns), standalone_fct (ns)
+        for line in f:
+            # Split the line into fields
+            fields = line.strip().split()
+            if len(fields) < 8:
+                continue  # Skip lines that don't match the expected format
+
+            try:
+                # Extract the FCT (assume it's the 7th value in each line)
+                sip, dip = int(fields[0][2:], 8), int(fields[1][2:], 8)
+                sport, dport = int(fields[2]), int(fields[3])
+                sz = int(fields[4])
+                start_time = int(fields[5])
+                fct, standalone_fct = int(fields[6]), int(fields[7])
+                
+                flow_key = to_flow_key(sip=sip, sport=sport, dip=dip, dport=dport, start_time=start_time)
+                fcts_by_flow[flow_key] = (start_time, fct, standalone_fct, sz)
+            except ValueError:
+                print("Skipping line due to invalid data: {}".format(line))
+
+    return fcts_by_flow
 
 # get path to output PNG file name
 def get_out_png_filename(graph_metric, file_suffix, node_num, hop_node_num=None, out_label=None):
@@ -324,10 +377,28 @@ def plot_histogram(data, xlabel, ylabel, title, out_file_name):
     plt.savefig(out_file_name)
     plt.close()
 
+def plot_scatter(X, Y, xlabel, ylabel, title, out_file_name):
+    # type: (List[int], List[int], str, str, str, str) -> None
+
+    # filtered_data = remove_outliers_iqr(data)
+    plt.scatter(X, Y)
+
+    # Add a title and labels
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    print('saving graph to {}'.format(out_file_name))
+    plt.savefig(out_file_name)
+    plt.close()
+
+# TODO: ignore start time?
 # sip, dip, sport, dport, start_time -> hash key
 def to_flow_key(sip, sport, dip, dport, start_time):
-    return "{sip}:{sport}${dip}:{dport}${start_time}".format(
-        sip=sip, sport=sport, dip=dip, dport=dport, start_time=start_time
+    # return "{sip}:{sport}${dip}:{dport}${start_time}".format(
+    #     sip=sip, sport=sport, dip=dip, dport=dport, start_time=start_time
+    # )
+    return "{sip}:{sport}${dip}:{dport}".format(
+        sip=sip, sport=sport, dip=dip, dport=dport
     )
 
 def remove_outliers_iqr(data):
