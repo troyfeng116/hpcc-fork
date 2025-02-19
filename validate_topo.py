@@ -13,9 +13,9 @@ def floyd_warshall(g):
             dist[u] = {}
         for v in nodes:
             dist[u][v] = 0 if u == v else 1 if v in g[u] else float('inf')
-    for u in nodes:
-        for v in nodes:
-            for k in nodes:
+    for k in nodes:
+        for u in nodes:
+            for v in nodes:
                 dist[u][v] = min(dist[u][v], dist[u][k] + dist[k][v])
     return dist
 
