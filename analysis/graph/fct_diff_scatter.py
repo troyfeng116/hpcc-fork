@@ -59,24 +59,24 @@ if __name__ == "__main__":
         _, exp_fct, _, exp_size = fct_map[flow_key]
         assert base_size == exp_size
         X.append(base_size)
-        Y.append(exp_fct)
+        Y.append(exp_fct - base_fct)
 
     #     fcts_ms.append(fct_ns / 1e6)
     
     out_png_name = get_out_png_filename(
-        graph_metric='fct_scatter',
+        graph_metric='fct_diff_scatter',
         file_suffix=get_file_suffix(topo=topo, flow=flow, cc_algo=cc_algo, misrep=''),
         node_num=node_num,
         out_label="{misrep}".format(misrep=misrep)
     )
-    graph_title = "Scatterplot of FCTs against flow size: misrep {misrep}".format(
+    graph_title = "Scatterplot of diff FCTs against flow size: misrep {misrep}".format(
         misrep=misrep)
     plot_scatter(
         # data=[e[1] for e in fct_map.values()],
         X=X,
         Y=Y,
         xlabel='Flow size (bytes)',
-        ylabel='FCT (ns)',
+        ylabel='Diff FCT (ns)',
         title=graph_title,
         out_file_name=out_png_name,
     )

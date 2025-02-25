@@ -360,12 +360,6 @@ def plot_histogram(data, xlabel, ylabel, title, out_file_name):
     # Create the histogram
     data = np.array(data)
 
-    print(min(data), max(data))
-    mean = np.mean(data)
-    stddev = np.std(data)
-    print("Mean:", mean)
-    print("Standard deviation:", stddev)
-
     filtered_data = remove_outliers_iqr(data)
     plt.hist(filtered_data, bins=100)
 
@@ -374,6 +368,37 @@ def plot_histogram(data, xlabel, ylabel, title, out_file_name):
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     print('saving graph to {}'.format(out_file_name))
+    plt.savefig(out_file_name)
+    plt.close()
+
+def plot_pos_neg_stacked_line_chart(data, xlabel, ylabel, title, out_file_name):
+    # type: (List[int], str, str, str, str) -> None
+    data = np.array(data)
+    filtered_data = remove_outliers_iqr(data)
+    abs_values = np.abs(filtered_data)
+    
+    # Separate positive and negative values
+    pos_values = filtered_data[filtered_data > 0]
+    neg_values = filtered_data[filtered_data < 0]
+    
+    # Create bins
+    bins = np.linspace(min(abs_values), max(abs_values), num=20)
+    pos_hist, _ = np.histogram(pos_values, bins=bins)
+    neg_hist, _ = np.histogram(-neg_values, bins=bins)
+
+    bin_centers = (bins[:-1] + bins[1:]) / 2
+    width = (bins[1] - bins[0]) * 0.4
+    
+    plt.figure(figsize=(10, 6))
+    plt.bar(bin_centers - width/2, pos_hist, width=width, label='Positive Values', color='blue', alpha=0.7)
+    plt.bar(bin_centers + width/2, neg_hist, width=width, label='Negative Values', color='red', alpha=0.7)
+    
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.legend()
+    
+    print('saving graph to {out_file_name}'.format(out_file_name=out_file_name))
     plt.savefig(out_file_name)
     plt.close()
 
