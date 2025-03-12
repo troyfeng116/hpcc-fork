@@ -15,6 +15,8 @@ TypeId RdmaDriver::GetTypeId (void)
 				MakeTraceSourceAccessor (&RdmaDriver::m_traceWindowSizeChangeCallback))
 		.AddTraceSource ("SenderViewReport", "HPCC per hop state update",
 				MakeTraceSourceAccessor (&RdmaDriver::m_traceSenderHpPerHopStateUpdateCallback))
+		.AddTraceSource ("ReceiverPacketRx", "Trace per packet received event",
+				MakeTraceSourceAccessor(&RdmaDriver::m_traceReceiverPacketRx))
 		;
 	return tid;
 }
@@ -53,7 +55,11 @@ void RdmaDriver::Init(void){
 	#endif
 	// RdmaHw do setup
 	m_rdma->SetNode(m_node);
-	m_rdma->Setup(MakeCallback(&RdmaDriver::QpComplete, this), MakeCallback(&RdmaDriver::WindowSizeChangeCallback, this), MakeCallback(&RdmaDriver::SenderPerHopStateUpdateCallback, this));
+	m_rdma->Setup(
+		MakeCallback(&RdmaDriver::QpComplete, this),
+		MakeCallback(&RdmaDriver::WindowSizeChangeCallback, this),
+		MakeCallback(&RdmaDriver::SenderPerHopStateUpdateCallback, this),
+		MakeCallback(&RdmaDriver::ReceiverPacketRxCallback, this));
 }
 
 void RdmaDriver::SetNode(Ptr<Node> node){
@@ -78,6 +84,10 @@ void RdmaDriver::WindowSizeChangeCallback(uint32_t node_id, Ptr<RdmaQueuePair> q
 
 void RdmaDriver::SenderPerHopStateUpdateCallback(uint32_t node_id, Ptr<RdmaQueuePair> qp) {
 	m_traceSenderHpPerHopStateUpdateCallback(node_id, qp);
+}
+
+void RdmaDriver::ReceiverPacketRxCallback(uint32_t node_id, Ptr<Packet> p, CustomHeader &ch) {
+	m_traceReceiverPacketRx(node_id, p, ch);
 }
 
 } // namespace ns3

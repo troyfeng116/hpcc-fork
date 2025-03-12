@@ -22,6 +22,7 @@ namespace ns3
 		TracedCallback<Ptr<RdmaQueuePair>> m_traceQpComplete;
 		TracedCallback<uint32_t, Ptr<RdmaQueuePair>> m_traceWindowSizeChangeCallback;
 		TracedCallback<uint32_t, Ptr<RdmaQueuePair>> m_traceSenderHpPerHopStateUpdateCallback;
+		TracedCallback<uint32_t, Ptr<Packet>, CustomHeader&> m_traceReceiverPacketRx;
 
 		static TypeId GetTypeId(void);
 		RdmaDriver();
@@ -47,6 +48,9 @@ namespace ns3
 
 		// callback when sender view of per-hop state changes
 		void SenderPerHopStateUpdateCallback(uint32_t node_id, Ptr<RdmaQueuePair> qp);
+
+		// callback when packet receive event occurs
+		void ReceiverPacketRxCallback(uint32_t node_id, Ptr<Packet> p, CustomHeader &ch);
 	};
 
 } // namespace ns3

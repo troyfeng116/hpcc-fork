@@ -16,6 +16,7 @@ NODE_TRACE_OUTPUT_FILE mix/node_trace_{topo}_{trace}_{cc}{failure}_{misrep}.txt
 FCT_OUTPUT_FILE mix/fct_{topo}_{trace}_{cc}{failure}_{misrep}.txt
 WSIZE_OUTPUT_FILE mix/wsize_{topo}_{trace}_{cc}{failure}_{misrep}.txt
 SENDER_VIEW_OUTPUT_FILE mix/sender_view_{topo}_{trace}_{cc}{failure}_{misrep}.txt
+RECEIVER_PACKET_RX_OUTPUT_FILE mix/receiver_packet_rx_{topo}_{trace}_{cc}{failure}_{misrep}.txt
 PFC_OUTPUT_FILE mix/pfc_{topo}_{trace}_{cc}{failure}.txt
 
 SIMULATOR_STOP_TIME 4.00

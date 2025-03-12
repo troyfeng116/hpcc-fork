@@ -51,6 +51,7 @@ std::string misreport_file;
 std::string fct_output_file = "fct.txt";
 std::string wsize_output_file = "wsize.txt";
 std::string sender_view_output_file = "sender_view.txt";
+std::string receiver_packet_rx_output_file = "receiver_packet_rx.txt";
 std::string pfc_output_file = "pfc.txt";
 std::string node_trace_output_file = "node_trace.txt";
 
@@ -197,6 +198,14 @@ void sender_view_report(FILE* fout, uint32_t node_id, Ptr<RdmaQueuePair> q){
 			q->sport, q->dport,
 			i, q->hp.hop[i].GetQlen());
 	}
+	fflush(fout);
+}
+
+void receiver_packet_rx(FILE* fout, uint32_t node_id, Ptr<Packet> p, CustomHeader &ch) {
+	// TODO: payload size or include headers? More fields
+	// timestamp, node_id, sip, dip, sport, dport, packet_size
+	// fprintf(fout, "%lu %u %08x %08x %u %u %lu\n", Simulator::Now().GetTimeStep(), node_id, q->sip.Get(), q->dip.Get(), q->sport, q->dport, q->m_rate.GetBitRate(), q->HpGetCurWin());
+	fprintf(fout, "%lu %u %08x %08x %u %u %lu\n", Simulator::Now().GetTimeStep(), node_id, ch.sip, ch.dip, ch.udp.sport, ch.udp.dport, p->GetSize());
 	fflush(fout);
 }
 
@@ -610,6 +619,9 @@ int main(int argc, char *argv[])
 			}else if (key.compare("SENDER_VIEW_OUTPUT_FILE") == 0){
 				conf >> sender_view_output_file;
 				std::cout << "SENDER_VIEW_OUTPUT_FILE\t\t" << sender_view_output_file << '\n';
+			}else if (key.compare("RECEIVER_PACKET_RX_OUTPUT_FILE") == 0){
+				conf >> receiver_packet_rx_output_file;
+				std::cout << "RECEIVER_PACKET_RX_OUTPUT_FILE\t\t" << receiver_packet_rx_output_file << '\n';
 			}else if (key.compare("HAS_WIN") == 0){
 				conf >> has_win;
 				std::cout << "HAS_WIN\t\t" << has_win << "\n";
@@ -954,6 +966,7 @@ int main(int argc, char *argv[])
 	FILE *fct_output = fopen(fct_output_file.c_str(), "w");
 	FILE *wsize_output = fopen(wsize_output_file.c_str(), "w");
 	FILE *sender_view_output = fopen(sender_view_output_file.c_str(), "w");
+	FILE *receiver_packet_rx_output = fopen(receiver_packet_rx_output_file.c_str(), "w");
 	//
 	// install RDMA driver
 	//
@@ -995,6 +1008,7 @@ int main(int argc, char *argv[])
 			rdma->TraceConnectWithoutContext("QpComplete", MakeBoundCallback (qp_finish, fct_output));
 			rdma->TraceConnectWithoutContext("WindowSizeChange", MakeBoundCallback(wsize_change, wsize_output));
 			rdma->TraceConnectWithoutContext("SenderViewReport", MakeBoundCallback(sender_view_report, sender_view_output));
+			rdma->TraceConnectWithoutContext("ReceiverPacketRx", MakeBoundCallback(receiver_packet_rx, receiver_packet_rx_output));
 		}
 	}
 	#endif

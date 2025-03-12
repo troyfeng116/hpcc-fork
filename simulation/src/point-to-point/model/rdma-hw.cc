@@ -184,7 +184,7 @@ RdmaHw::RdmaHw(){
 void RdmaHw::SetNode(Ptr<Node> node){
 	m_node = node;
 }
-void RdmaHw::Setup(QpCompleteCallback cb, TraceWindowSizeChangeCallback wSizeCb, TraceHpPerHopStateCallback hpPerHopStateCb){
+void RdmaHw::Setup(QpCompleteCallback cb, TraceWindowSizeChangeCallback wSizeCb, TraceHpPerHopStateCallback hpPerHopStateCb, TraceReceiverPacketRxCallback receiverPacketRxCb){
 	for (uint32_t i = 0; i < m_nic.size(); i++){
 		Ptr<QbbNetDevice> dev = m_nic[i].dev;
 		if (dev == NULL)
@@ -202,6 +202,7 @@ void RdmaHw::Setup(QpCompleteCallback cb, TraceWindowSizeChangeCallback wSizeCb,
 	m_qpCompleteCallback = cb;
 	m_traceWindowSizeChangeCallback = wSizeCb;
 	m_traceHpPerHopStateCallback = hpPerHopStateCb;
+	m_traceReceiverPacketRx = receiverPacketRxCb;
 }
 
 uint32_t RdmaHw::GetNicIdxOfQp(Ptr<RdmaQueuePair> qp){
@@ -299,6 +300,8 @@ void RdmaHw::DeleteRxQp(uint32_t dip, uint16_t pg, uint16_t dport){
 }
 
 int RdmaHw::ReceiveUdp(Ptr<Packet> p, CustomHeader &ch){
+	m_traceReceiverPacketRx(m_node->GetId(), p, ch);
+
 	uint8_t ecnbits = ch.GetIpv4EcnBits();
 
 	uint32_t payload_size = p->GetSize() - ch.GetSerializedSize();
