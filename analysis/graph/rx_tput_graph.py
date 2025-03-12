@@ -1,0 +1,92 @@
+import argparse
+from typing import List, Tuple
+
+from graph_helpers import (
+    get_file_suffix,
+    get_graph_title,
+    get_mix_trace_filename,
+    get_out_png_filename,
+    plot_data_points,
+)
+
+def process_rx_pkt_trace_file(file_name, node_num):
+    # type: (str, int) -> Tuple[List[str], List[str]]
+    times = []
+    rx_pkt_szs = []
+
+    with open(file_name, 'r') as file:
+        # timestamp, node_id, sip, dip, sport, dport, packet_size
+        # 4496 6 0b000001 0b000601 10000 79 1562
+        for line in file:
+            toks = line.split()
+            if len(toks) < 7:
+                print('skipping {}'.format(line))
+                continue
+            time_ns = int(toks[0]) # time in ns
+            node = int(toks[1]) # node number
+            rx_pkt_sz = int(toks[6]) # packet size in bytes
+
+            if node == node_num:
+                times.append(time_ns)
+                rx_pkt_szs.append(rx_pkt_sz)
+
+    print(len(times))
+    return times, rx_pkt_szs
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='graph throughput over time')
+    parser.add_argument('--node', dest='node', action='store', type=int, default=0, help="node id")
+    parser.add_argument('--flow', dest='flow', action='store', default='flow', help="the name of the flow file")
+    parser.add_argument('--bw', dest="bw", action='store', default='100', help="the NIC bandwidth")
+    parser.add_argument('--topo', dest='topo', action='store', default='fat', help="the name of the topology file")
+    parser.add_argument('--misrep', dest='misrep', action='store', default='none', help="the name of the misreporting profile file")
+    parser.add_argument('--cc_algo', dest='cc_algo', action='store', default='hp95ai50', help="CC algo with params")
+    args = parser.parse_args()
+
+    node_num = args.node
+    topo=args.topo
+    misrep=args.misrep
+    flow=args.flow
+    cc_algo = args.cc_algo
+
+    file_suffix = get_file_suffix(topo=topo, flow=flow, cc_algo=cc_algo, misrep=misrep)
+    trace_file = get_mix_trace_filename(trace_name='receiver_packet_rx', file_suffix=file_suffix)
+
+    times, rx_pkt_szs = process_rx_pkt_trace_file(file_name=trace_file, node_num=node_num)
+    if not times:
+        print("no receiver data for node {}. Are you sure this is a receiver?".format(node_num))
+        exit(1)
+
+    times_ms = [t / 1e6 for t in times]
+    # normalize: start from 0 for tput
+    norm_times_ms = [t / 1e6 for t in times]
+    # cumulative received bytes
+    cumul_rx_bytes = [0 for _ in times_ms]
+    cumul_rx_bytes[0] = rx_pkt_szs[0]
+    for i in range(1, len(rx_pkt_szs)):
+        cumul_rx_bytes[i] = cumul_rx_bytes[i-1] + rx_pkt_szs[i]
+
+    tput_b_ms = [
+        tbytes / t
+        for (t, tbytes) in zip(norm_times_ms, cumul_rx_bytes)
+        if norm_times_ms != 0
+    ]
+    graph_title = get_graph_title(
+        metric_name='RX tput over time (B/ms)',
+        node_num=node_num,
+        cc_algo=cc_algo,
+        misrep=misrep,
+    )
+    out_png_name = get_out_png_filename(
+        graph_metric='rx_tput',
+        file_suffix=file_suffix,
+        node_num=node_num,
+    )
+    plot_data_points(
+        times=times_ms,
+        data_points=tput_b_ms,
+        xlabel='Time (ms)',
+        ylabel='Receiver throughput (B/ms)',
+        title=graph_title,
+        out_file_name=out_png_name,
+    )
