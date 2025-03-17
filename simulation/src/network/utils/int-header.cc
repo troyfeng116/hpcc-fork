@@ -15,9 +15,10 @@ IntHeader::IntHeader() : nhop(0) {
 
 uint32_t IntHeader::GetStaticSize(){
 	if (mode == NORMAL){
-		return sizeof(hop) + sizeof(nhop);
-	}else if (mode == TS){
-		return sizeof(ts);
+	// 	return sizeof(hop) + sizeof(nhop);
+	// }else if (mode == TS){
+	// 	return sizeof(ts);
+		return sizeof(hop) + sizeof(nhop) + sizeof(ts);
 	}else if (mode == PINT){
 		return sizeof(pint);
 	}else {
@@ -42,7 +43,8 @@ void IntHeader::Serialize (Buffer::Iterator start) const{
 			i.WriteU32(hop[j].buf[1]);
 		}
 		i.WriteU16(nhop);
-	}else if (mode == TS){
+	// }else if (mode == TS){
+	// 	i.WriteU64(ts);
 		i.WriteU64(ts);
 	}else if (mode == PINT){
 		if (pint_bytes == 1)
@@ -60,7 +62,8 @@ uint32_t IntHeader::Deserialize (Buffer::Iterator start){
 			hop[j].buf[1] = i.ReadU32();
 		}
 		nhop = i.ReadU16();
-	}else if (mode == TS){
+	// }else if (mode == TS){
+	// 	ts = i.ReadU64();
 		ts = i.ReadU64();
 	}else if (mode == PINT){
 		if (pint_bytes == 1)
@@ -72,9 +75,10 @@ uint32_t IntHeader::Deserialize (Buffer::Iterator start){
 }
 
 uint64_t IntHeader::GetTs(void){
-	if (mode == TS)
-		return ts;
-	return 0;
+	// if (mode == TS)
+	// 	return ts;
+	// return 0;
+	return ts;
 }
 
 uint16_t IntHeader::GetPower(void){

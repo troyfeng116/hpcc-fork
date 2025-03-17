@@ -75,7 +75,7 @@ public:
 
 class IntHeader{
 public:
-	static const uint32_t maxHop = 5;
+	static const uint32_t maxHop = 64;
 	enum Mode{
 		NORMAL = 0,
 		TS = 1,
@@ -90,8 +90,9 @@ public:
 		struct {
 			IntHop hop[maxHop];
 			uint16_t nhop;
+			uint64_t ts;
 		};
-		uint64_t ts;
+		// uint64_t ts;
 		union {
 			uint16_t power;
 			struct{

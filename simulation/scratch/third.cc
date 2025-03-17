@@ -203,9 +203,10 @@ void sender_view_report(FILE* fout, uint32_t node_id, Ptr<RdmaQueuePair> q){
 
 void receiver_packet_rx(FILE* fout, uint32_t node_id, Ptr<Packet> p, CustomHeader &ch) {
 	// TODO: payload size or include headers? More fields
-	// timestamp, node_id, sip, dip, sport, dport, packet_size
+	// timestamp, node_id, sip, dip, sport, dport, packet_size, time_sent
 	// fprintf(fout, "%lu %u %08x %08x %u %u %lu\n", Simulator::Now().GetTimeStep(), node_id, q->sip.Get(), q->dip.Get(), q->sport, q->dport, q->m_rate.GetBitRate(), q->HpGetCurWin());
-	fprintf(fout, "%lu %u %08x %08x %u %u %lu\n", Simulator::Now().GetTimeStep(), node_id, ch.sip, ch.dip, ch.udp.sport, ch.udp.dport, p->GetSize());
+	fprintf(fout, "%lu %u %08x %08x %u %u %lu %lu\n", Simulator::Now().GetTimeStep(),
+		node_id, ch.sip, ch.dip, ch.udp.sport, ch.udp.dport, p->GetSize(), ch.udp.ih.ts);
 	fflush(fout);
 }
 

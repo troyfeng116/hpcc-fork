@@ -33,7 +33,7 @@ NS_OBJECT_ENSURE_REGISTERED (SeqTsHeader);
 SeqTsHeader::SeqTsHeader ()
   : m_seq (0)
 {
-	if (IntHeader::mode == 1)
+	// if (IntHeader::mode == 1)
 		ih.ts = Simulator::Now().GetTimeStep();
 }
 
@@ -62,7 +62,7 @@ SeqTsHeader::GetPG (void) const
 Time
 SeqTsHeader::GetTs (void) const
 {
-	NS_ASSERT_MSG(IntHeader::mode == 1, "SeqTsHeader cannot GetTs when IntHeader::mode != 1");
+	// NS_ASSERT_MSG(IntHeader::mode == 1, "SeqTsHeader cannot GetTs when IntHeader::mode != 1");
 	return TimeStep (ih.ts);
 }
 
